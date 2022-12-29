@@ -32,7 +32,7 @@ export class User {
     @Prop({
         type: String,
         enum: Object.keys(ACCOUNT_ROLE),
-        default: ACCOUNT_ROLE.ADMIN
+        default: ACCOUNT_ROLE.USER
     })
     role: ACCOUNT_ROLE
 }
