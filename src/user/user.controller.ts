@@ -1,6 +1,6 @@
 import { UserInterface } from './interface/user.interface';
 import { CreateUserDto } from './dto/create-user.dto';
-import { Controller, Post, UseInterceptors, Body } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, Body, Param } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
 import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -43,5 +43,18 @@ export class UserController {
   @Get()
   async findAll(@Query() query: FilterQueryDto) {
     return await this.userService.queryAllUsers(query)
+  }
+
+  @ApiOkResponse({
+    type: UserInterface,
+    description: 'Find User Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: 'User Not Found With This ID'
+  })
+  @ApiOperation({ summary: 'Get user By Its ID' })
+  @Get('/:id')
+  async findbyId(@Param('id') id: string) {
+    return this.userService.queryUser(id)
   }
 }
