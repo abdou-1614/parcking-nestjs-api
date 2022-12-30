@@ -1,48 +1,40 @@
 export class FilterQueries {
-    constructor(public query, public queryString, public prejection = {}) {}
-
+    constructor(public query, public queryString, public projection = {}) {}
+  
     filter() {
-        const queryObject = { ...this.queryString }
-
-        const fieldExclude = ['sort', 'filter', 'page', 'fields']
-
-        fieldExclude.forEach((el) => delete queryObject[el])
-
-        let queryStr = JSON.stringify(queryObject)
-        
-        queryStr = queryStr.replace(/\b(gt|gte|lt|lte|ne)\b/g, (match) => `$${match}`)
-
-        this.query = this.query.find(JSON.parse(queryStr)).select(this.prejection)
+      const queryObject = { ...this.queryString };
+      // ignore excluded fields from queryObject
+      const fieldsToExclude = ['sort', 'limit', 'page', 'fields'];
+      fieldsToExclude.forEach((el) => delete queryObject[el]);
+  
+      let queryStr = JSON.stringify(queryObject);
+      queryStr = queryStr.replace(/\b(gt|gte|lt|lte|ne)\b/g, (match) => `$${match}`);
+      this.query = this.query.find(JSON.parse(queryStr)).select(this.projection);
+      return this;
     }
     sort() {
-        if(this.queryString.sort) {
-            const sortBy = this.queryString.sort.split(',').join(' ')
-            const obj = {}
-            const number = Number(sortBy[0])
-            sortBy.forEach((field) => {
-                obj[field] = number
-            })
-
-            delete obj[sortBy[0]]
-
-            this.query.sort(obj)
-            return this
-        }
-        return this
+      if (this.queryString.sort) {
+        const sortBy = this.queryString.sort.split(',').join(' ');
+        this.query.sort(sortBy);
+        return this;
+      }
+      return this;
     }
+  
     limitField() {
-        if(this.queryString.fields) {
-            const fields = this.queryString.fields.split(',').join(' ')
-            this.query.select(fields)
-            return this
-        }
-        return this
+      if (this.queryString.fields) {
+        const fields = this.queryString.fields.split(',').join(' ');
+        this.query.select(fields);
+        return this;
+      }
+      return this;
     }
+  
     paginate() {
-        const page = this.queryString.page || 1
-        const limit = this.queryString.limit || 10
-        const skip = limit * (page - 1)
-        this.query.skip(skip).limit(limit)
-        return this
+      const page = +this.queryString.page || 1;
+      const limit = +this.queryString.limit || 20;
+      const skip = (page - 1) * limit;
+      this.query.skip(skip).limit(limit);
+      return this;
     }
-}
+  }
