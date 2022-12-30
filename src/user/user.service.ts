@@ -1,7 +1,7 @@
 import { ACCOUNT_STATUS } from './../constants/account.constant';
 import { Injectable, ServiceUnavailableException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { UserDocument } from './schema/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { BadRequestException } from '@nestjs/common/exceptions';
@@ -49,6 +49,18 @@ export class UserService {
 
         if(user.length === 0) {
             throw new NotFoundException('Users Not Found')
+        }
+
+        return user
+    }
+
+    async queryUser(id: string) {
+        const ValidID = mongoose.isValidObjectId(id)
+        if(!ValidID) throw new BadRequestException('NOT VALID ID')
+        const user = await this.userModel.findById(id)
+
+        if(!user) {
+            throw new NotFoundException('User Not Found')
         }
 
         return user
