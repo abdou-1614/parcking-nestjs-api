@@ -1,10 +1,14 @@
 import { ACCOUNT_STATUS } from './../constants/account.constant';
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserDocument } from './schema/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { BadRequestException } from '@nestjs/common/exceptions';
+import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
+import { FilterQueries } from 'src/utils/filterQueries.util';
+import { ui_query_projection_fields } from './users.projection';
+import { UserInterface } from './interface/user.interface';
 
 @Injectable()
 export class UserService {
@@ -30,6 +34,24 @@ export class UserService {
 
             throw new ServiceUnavailableException()
         }
+    }
+
+    async queryAllUsers(filterQueryDto: FilterQueryDto) {
+        const filterQuery = new FilterQueries(
+            this.userModel,
+            filterQueryDto,
+            ui_query_projection_fields
+        )
+        
+        await filterQuery.filter().limitField().paginate().sort()
+
+        const user = await filterQuery.query
+
+        if(user.length === 0) {
+            throw new NotFoundException('Users Not Found')
+        }
+
+        return user
     }
 
 
