@@ -9,6 +9,8 @@ import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { FilterQueries } from 'src/utils/filterQueries.util';
 import { ui_query_projection_fields } from './users.projection';
 import { UserInterface } from './interface/user.interface';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { unlinkSync } from 'fs';
 
 @Injectable()
 export class UserService {
@@ -64,6 +66,30 @@ export class UserService {
         }
 
         return user
+    }
+
+    async updateUserDetails(id: string, updateDto: UpdateUserDto) {
+        const { name, email, image, status, role } = updateDto
+        const validId = mongoose.isValidObjectId(id)
+        if(!validId) throw new BadRequestException('NOT VALID ID')
+
+        const user = await this.userModel.findById(id)
+
+        if(!user) {
+            throw new NotFoundException('User Not Found')
+        }
+
+        return this.userModel.findByIdAndUpdate(id, {
+            name,
+            email,
+            image: image.filename,
+            status,
+            role
+        },
+        {
+            new: true,
+        }
+        )
     }
 
 
