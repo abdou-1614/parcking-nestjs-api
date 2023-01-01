@@ -1,12 +1,13 @@
 import { UserInterface } from './interface/user.interface';
 import { CreateUserDto } from './dto/create-user.dto';
-import { Controller, Post, UseInterceptors, Body, Param } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, Body, Param, Patch } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
 import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileUploadBodyInterceptor } from 'src/common/interceptors/fileUpload.interceptor';
 import { Get, Query } from '@nestjs/common/decorators';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('USERS')
 @Controller('user')
@@ -56,5 +57,18 @@ export class UserController {
   @Get('/:id')
   async findbyId(@Param('id') id: string) {
     return this.userService.queryUser(id)
+  }
+
+  @ApiOkResponse({
+    type: UserInterface,
+    description: 'Updated User Details Successfully'
+  })
+  @ApiBody({ type: UpdateUserDto })
+  @ApiOperation({ summary: 'Update User Details' })
+  @ApiConsumes('multipart/form-data')
+  @Patch('/:id')
+  @UseInterceptors(FileInterceptor('image'), FileUploadBodyInterceptor)
+  async update(@Param('id') id: string, @Body() updateDto: UpdateUserDto) {
+    return this.userService.updateUserDetails(id, updateDto)
   }
 }
