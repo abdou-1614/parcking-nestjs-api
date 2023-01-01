@@ -11,6 +11,8 @@ import { ui_query_projection_fields } from './users.projection';
 import { UserInterface } from './interface/user.interface';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { unlinkSync } from 'fs';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { compare } from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -90,6 +92,17 @@ export class UserService {
             new: true,
         }
         )
+    }
+
+    async deleteUser(id: string) {
+        const validId = mongoose.isValidObjectId(id)
+        if(!validId) throw new BadRequestException('NOT VALID ID')
+
+        const user = await this.userModel.findByIdAndDelete(id)
+
+        if(!user) throw new NotFoundException('User Not Found')
+
+        return 'Successful User Delete'
     }
 
 
