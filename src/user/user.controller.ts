@@ -1,6 +1,6 @@
 import { UserInterface } from './interface/user.interface';
 import { CreateUserDto } from './dto/create-user.dto';
-import { Controller, Post, UseInterceptors, Body, Param, Patch } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, Body, Param, Patch, Delete } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
 import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -63,6 +63,9 @@ export class UserController {
     type: UserInterface,
     description: 'Updated User Details Successfully'
   })
+  @ApiNotFoundResponse({
+    description: 'User Not Found'
+  })
   @ApiBody({ type: UpdateUserDto })
   @ApiOperation({ summary: 'Update User Details' })
   @ApiConsumes('multipart/form-data')
@@ -70,5 +73,17 @@ export class UserController {
   @UseInterceptors(FileInterceptor('image'), FileUploadBodyInterceptor)
   async update(@Param('id') id: string, @Body() updateDto: UpdateUserDto) {
     return this.userService.updateUserDetails(id, updateDto)
+  }
+
+  @ApiOkResponse({
+    description: 'Delete User Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: 'User Not Found'
+  })
+  @ApiOperation({ summary: 'Delete Users' })
+  @Delete('/:id')
+  async delete(@Param('id') id: string) {
+    return this.userService.deleteUser(id)
   }
 }
