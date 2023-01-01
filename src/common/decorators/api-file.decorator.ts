@@ -11,6 +11,7 @@ export const ApiFile = (options?: ApiPropertyOptions): PropertyDecorator => (
                 type: 'string',
                 format: 'binary'
             }
-        }
+        },
+        required: false
     })(target, preopertyKey)
 }
