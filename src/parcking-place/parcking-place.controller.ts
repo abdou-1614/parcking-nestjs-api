@@ -1,7 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ParckingPlaceService } from './parcking-place.service';
 import { CreateParckingPlaceDto } from './dto/create-place.dto';
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 
 @ApiTags('PARCKING PLACE')
 @Controller('parcking-place')
@@ -22,5 +23,17 @@ export class ParckingPlaceController {
   @Post()
   async create(@Body() input: CreateParckingPlaceDto) {
     return this.parckingPlaceService.createPlace(input)
+  }
+
+  @ApiCreatedResponse({
+    description: 'Parcking Places Found Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: 'Parcking Places Not Found'
+  })
+  @ApiOperation({ summary: 'Find All Parcking Places' })
+  @Get()
+  async findAll(@Query() query: FilterQueryDto) {
+    return this.parckingPlaceService.queryAllPlaces(query)
   }
 }
