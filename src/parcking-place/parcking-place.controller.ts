@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ParckingPlaceService } from './parcking-place.service';
 import { CreateParckingPlaceDto } from './dto/create-place.dto';
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
+import { UpdateParckingPlaceDto } from './dto/update-place.dto';
 
 @ApiTags('PARCKING PLACE')
 @Controller('parcking-place')
@@ -18,6 +19,9 @@ export class ParckingPlaceController {
   })
   @ApiBadRequestResponse({
     description: 'Name Is Required, Please Enter A Name '
+  })
+  @ApiConflictResponse({
+    description: 'Place Name Already Exist'
   })
   @ApiOperation({ summary: 'Create Parcking Place' })
   @Post()
@@ -47,5 +51,17 @@ export class ParckingPlaceController {
   @Get('/:id')
   async findById(@Param('id') id: string) {
     return this.parckingPlaceService.queryId(id)
+  }
+
+  @ApiOkResponse({
+    description: 'Parcking Place Updated Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: 'Parcking Place Not Found With This ID'
+  })
+  @ApiOperation({ summary: 'Update Parcking Place By It"s ID' })
+  @Patch('/:id')
+  async update(@Param('id') id: string, @Body() input: UpdateParckingPlaceDto) {
+    return this.parckingPlaceService.updatePlace(id, input)
   }
 }
