@@ -1,7 +1,8 @@
+import { BadRequestException } from '@nestjs/common/exceptions';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ParckingPlace, ParckingPlaceDocument } from './schema/parcking-place.schema';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateParckingPlaceDto } from './dto/create-place.dto';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { FilterQueries } from 'src/utils/filterQueries.util';
@@ -33,6 +34,19 @@ export class ParckingPlaceService {
 
         if(!place) {
             throw new NotFoundException('Parcking Places Not Found')
+        }
+
+        return place
+    }
+
+    async queryId(id: string) {
+        const isValidID = mongoose.isValidObjectId(id)
+        if(!isValidID) throw new BadRequestException('NOT VALID ID')
+
+        const place = await this.parckingPlaceModel.findById(id)
+
+        if(!place) {
+            throw new NotFoundException('Place Not Found')
         }
 
         return place
