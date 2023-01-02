@@ -1,0 +1,4 @@
+export enum PARCKING_PLACE_STATUS {
+    INACTIVE = "INACTIVE",
+    ACTIVE = "ACTIVE",
+}
