@@ -81,4 +81,17 @@ export class ParckingPlaceService {
         }
         return place
     }
+
+    async deletePlace(id: string) {
+        const isValidID = mongoose.isValidObjectId(id)
+        if(!isValidID) throw new BadRequestException('NOT VALID ID')
+
+        const place = await this.parckingPlaceModel.findByIdAndDelete(id)
+
+        if(!place) {
+            throw new NotFoundException('Place Not Found')
+        }
+
+        return 'Parcking Place Deleted Successfully'
+    }
 }
