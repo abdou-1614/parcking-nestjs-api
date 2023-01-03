@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ParckingPlaceService } from './parcking-place.service';
 import { CreateParckingPlaceDto } from './dto/create-place.dto';
 import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -63,5 +63,17 @@ export class ParckingPlaceController {
   @Patch('/:id')
   async update(@Param('id') id: string, @Body() input: UpdateParckingPlaceDto) {
     return this.parckingPlaceService.updatePlace(id, input)
+  }
+
+  @ApiOkResponse({
+    description: 'Parcking Place Deleted Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: 'Parcking Place Not Found With This ID'
+  })
+  @ApiOperation({ summary: 'Update Parcking Place By It"s ID' })
+  @Delete('/:id')
+  async delete(@Param('id') id: string) {
+    return this.parckingPlaceService.deletePlace(id)
   }
 }
