@@ -1,8 +1,9 @@
 import { FilterQueryDto } from './../common/dto/filterquery.dto';
-import { Controller, Post, Body, Get, Query, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Param, Patch } from '@nestjs/common';
 import { ParckingCategoryService } from './parcking-category.service';
 import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CreateParckingCategoryDto } from './dto/create-parcking-category.dto';
+import { UpdateParckingCategoryDto } from './dto/update-parcking-category.dto';
 
 @ApiTags('PARCKING_CATEGORY')
 @Controller('parcking-category')
@@ -34,7 +35,7 @@ export class ParckingCategoryController {
   }
 
   @ApiBadRequestResponse({
-    description: 'NOT VALID ID'
+    description: 'the entered place is invalid'
   })
   @ApiOkResponse({
     description: 'Parcking Category Found Successfully'
@@ -47,5 +48,24 @@ export class ParckingCategoryController {
   @Get('/:id')
   async findById(@Param('id') id: string) {
     return this.parckingCategoryService.queryById(id)
+  }
+
+  @ApiBadRequestResponse({
+    description: 'This Type Already Exists'
+  })
+  @ApiOkResponse({
+    description: 'Parcking Category Updated Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: 'Categories Not Found'
+  })
+  @ApiBadRequestResponse({
+    description: 'the entered place is invalid'
+  })
+  @ApiOperation({ summary: 'Update Category By It"s ID' })
+  @ApiParam({ name: 'id', required: true, description: "Enter ID Of Category" })
+  @Patch('/:id')
+  async update(@Param('id') id: string, @Body() input: UpdateParckingCategoryDto) {
+    return this.parckingCategoryService.update(id, input)
   }
 }
