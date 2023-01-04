@@ -87,6 +87,18 @@ export class ParckingCategoryService {
         return updateCategory
     }
 
+    async deleteCategory(id: string): Promise<string> {
+        const isValidID = mongoose.isValidObjectId(id)
+        if(!isValidID) throw new BadRequestException('NOT VALID ID')
+        const category = await this.parckingCategoryModel.findByIdAndDelete(id)
+
+        if(!category){
+            throw new NotFoundException('Category Not Found')
+        }
+
+        return "Parcking Category Deleted Successfully"
+    }
+
     private async checkTypeExist(type: string) {
         const categoryType = await this.parckingCategoryModel.findOne({ type })
         if(categoryType) throw new BadRequestException(' This Type Already Exists ')
