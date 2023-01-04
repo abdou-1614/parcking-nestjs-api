@@ -1,3 +1,4 @@
+import { ParckingPlace, ParckingPlaceDocument } from './../parcking-place/schema/parcking-place.schema';
 import { BadRequestException, HttpException, ServiceUnavailableException } from '@nestjs/common/exceptions';
 import { ParckingCategory, ParckingCategoryDocument } from './schema/parcking-category.schema';
 import { Injectable, HttpStatus, NotFoundException } from '@nestjs/common';
@@ -7,10 +8,14 @@ import { CreateParckingCategoryDto } from './dto/create-parcking-category.dto';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { FilterQueries } from 'src/utils/filterQueries.util';
 import { ui_query_projection_category } from './parcking-category.projection';
+import { UpdateParckingCategoryDto } from './dto/update-parcking-category.dto';
 
 @Injectable()
 export class ParckingCategoryService {
-    constructor( @InjectModel(ParckingCategory.name) private readonly parckingCategoryModel: Model<ParckingCategoryDocument> ) {}
+    constructor( 
+        @InjectModel(ParckingCategory.name) private readonly parckingCategoryModel: Model<ParckingCategoryDocument>,
+        @InjectModel(ParckingPlace.name) private readonly parckingPlaceModel: Model<ParckingPlaceDocument>,
+    ) {}
 
 
     async createCategory(input: CreateParckingCategoryDto) {
@@ -61,5 +66,29 @@ export class ParckingCategoryService {
         }
 
         return category
+    }
+
+    async update(id: string, input: UpdateParckingCategoryDto) {
+        const { type, place } = input
+
+        if(type) await this.checkTypeExist(type)
+
+        const checkPlaceExist = await this.parckingPlaceModel.findById(place)
+        if(!checkPlaceExist) throw new BadRequestException('the entered place is invalid')
+
+        const updateCategory = await this.parckingCategoryModel.findByIdAndUpdate(id, input, {
+            new: true
+        })
+
+        if(!updateCategory) {
+            throw new NotFoundException('Category Not Found !')
+        }
+
+        return updateCategory
+    }
+
+    private async checkTypeExist(type: string) {
+        const categoryType = await this.parckingCategoryModel.findOne({ type })
+        if(categoryType) throw new BadRequestException(' This Type Already Exists ')
     }
 }
