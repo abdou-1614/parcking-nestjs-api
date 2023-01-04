@@ -1,3 +1,4 @@
+import { ParckingPlace, ParckingPlaceSchema } from './../parcking-place/schema/parcking-place.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Module } from '@nestjs/common';
 import { ParckingCategoryService } from './parcking-category.service';
@@ -6,7 +7,7 @@ import { ParckingCategory, ParckingCategorySchema } from './schema/parcking-cate
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: ParckingCategory.name, schema: ParckingCategorySchema }])
+    MongooseModule.forFeature([{ name: ParckingCategory.name, schema: ParckingCategorySchema }, { name: ParckingPlace.name, schema: ParckingPlaceSchema }])
   ],
   controllers: [ParckingCategoryController],
   providers: [ParckingCategoryService]
