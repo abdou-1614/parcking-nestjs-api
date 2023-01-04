@@ -1,8 +1,8 @@
-import { HttpException, ServiceUnavailableException } from '@nestjs/common/exceptions';
+import { BadRequestException, HttpException, ServiceUnavailableException } from '@nestjs/common/exceptions';
 import { ParckingCategory, ParckingCategoryDocument } from './schema/parcking-category.schema';
 import { Injectable, HttpStatus, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateParckingCategoryDto } from './dto/create-parcking-category.dto';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { FilterQueries } from 'src/utils/filterQueries.util';
@@ -45,6 +45,19 @@ export class ParckingCategoryService {
         const category = await filterQuery.query.populate('place', 'name')
         if(!category) {
             throw new NotFoundException('Categories Not Found !')
+        }
+
+        return category
+    }
+
+    async queryById(id: string) {
+        const isValidID = mongoose.isValidObjectId(id)
+        if(!isValidID) throw new BadRequestException('NOT VALID ID')
+
+        const category = await this.parckingCategoryModel.findById(id)
+
+        if(!category) {
+            throw new NotFoundException('Category Not Found')
         }
 
         return category
