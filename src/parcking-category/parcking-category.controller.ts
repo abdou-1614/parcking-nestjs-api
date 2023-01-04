@@ -1,5 +1,5 @@
 import { FilterQueryDto } from './../common/dto/filterquery.dto';
-import { Controller, Post, Body, Get, Query, Param, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Param, Patch, Delete } from '@nestjs/common';
 import { ParckingCategoryService } from './parcking-category.service';
 import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CreateParckingCategoryDto } from './dto/create-parcking-category.dto';
@@ -67,5 +67,21 @@ export class ParckingCategoryController {
   @Patch('/:id')
   async update(@Param('id') id: string, @Body() input: UpdateParckingCategoryDto) {
     return this.parckingCategoryService.update(id, input)
+  }
+
+  @ApiBadRequestResponse({
+    description: 'NOT VALID ID'
+  })
+  @ApiOkResponse({
+    description: 'Parcking Category Deleted Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: 'Categories Not Found'
+  })
+  @ApiOperation({ summary: 'Delete Category By It"s ID' })
+  @ApiParam({ name: 'id', required: true, description: "Enter ID Of Category" })
+  @Delete('/:id')
+  async delete(@Param('id') id: string): Promise<string> {
+    return this.parckingCategoryService.deleteCategory(id)
   }
 }
