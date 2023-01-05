@@ -5,7 +5,7 @@ import { CreateFloorDto } from './dto/create-floor.dto';
 import { Floor, FloorDocument } from './schema/floor.schema';
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { FilterQueries } from 'src/utils/filterQueries.util';
 
@@ -55,6 +55,19 @@ export class FloorService {
         const floor = await filterQuery.query.populate('place', 'name')
 
         if(!floor) throw new NotFoundException('No Floors Found !')
+
+        return floor
+    }
+
+    async queryById(id: string) {
+        const isValidId = mongoose.isValidObjectId(id)
+        if(!isValidId) throw new BadRequestException('NOT VALID ID')
+
+        const floor = await this.floorModel.findById(id)
+
+        if(!floor) {
+            throw new NotFoundException('FLoor Not Found With This ID')
+        }
 
         return floor
     }
