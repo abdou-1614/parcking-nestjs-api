@@ -1,7 +1,8 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { FilterQueryDto } from './../common/dto/filterquery.dto';
+import { Controller, Post, Body, Get, Query } from '@nestjs/common';
 import { FloorService } from './floor.service';
 import { CreateFloorDto } from './dto/create-floor.dto';
-import { ApiOperation, ApiCreatedResponse, ApiNotFoundResponse, ApiConflictResponse, ApiBadRequestResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiCreatedResponse, ApiNotFoundResponse, ApiConflictResponse, ApiBadRequestResponse, ApiOkResponse } from '@nestjs/swagger';
 
 @Controller('floor')
 export class FloorController {
@@ -9,9 +10,6 @@ export class FloorController {
 
   @ApiCreatedResponse({
     description: "Floor Created Successfully"
-  })
-  @ApiBadRequestResponse({
-    description: "The Entered Place Is Invalid"
   })
   @ApiNotFoundResponse({
     description: "The Entered Place Not Found"
@@ -23,5 +21,16 @@ export class FloorController {
   @Post()
   async create(@Body() input: CreateFloorDto) {
     return this.floorService.createFloor(input)
+  }
+  @ApiOkResponse({
+    description: 'Floors Found Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: "The Entered Place Not Found"
+  })
+  @ApiOperation({ summary: 'Find All Floors With Parcking Place Name' })
+  @Get()
+  async findAll(@Query() query: FilterQueryDto) {
+    return this.floorService.queryAllFloor(query)
   }
 }
