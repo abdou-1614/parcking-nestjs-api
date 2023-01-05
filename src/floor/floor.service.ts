@@ -1,3 +1,4 @@
+import { ui_query_projection_floor } from './floor.projection';
 import { BadRequestException, NotFoundException, HttpException, ServiceUnavailableException } from '@nestjs/common/exceptions';
 import { ParckingPlace, ParckingPlaceDocument } from './../parcking-place/schema/parcking-place.schema';
 import { CreateFloorDto } from './dto/create-floor.dto';
@@ -5,6 +6,8 @@ import { Floor, FloorDocument } from './schema/floor.schema';
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
+import { FilterQueries } from 'src/utils/filterQueries.util';
 
 @Injectable()
 export class FloorService {
@@ -38,5 +41,21 @@ export class FloorService {
 
             throw new ServiceUnavailableException()
         }
+    }
+
+    async queryAllFloor(filterDto: FilterQueryDto){
+        const filterQuery = new FilterQueries(
+            this.floorModel,
+            filterDto,
+            ui_query_projection_floor
+        )
+
+        filterQuery.filter().limitField().paginate().sort()
+
+        const floor = await filterQuery.query.populate('place', 'name')
+
+        if(!floor) throw new NotFoundException('No Floors Found !')
+
+        return floor
     }
 }
