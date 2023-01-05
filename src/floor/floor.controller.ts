@@ -1,5 +1,6 @@
+import { UpdateFloorDto } from './dto/update-floor.dto';
 import { FilterQueryDto } from './../common/dto/filterquery.dto';
-import { Controller, Post, Body, Get, Query, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Param, Patch, Delete } from '@nestjs/common';
 import { FloorService } from './floor.service';
 import { CreateFloorDto } from './dto/create-floor.dto';
 import { ApiOperation, ApiCreatedResponse, ApiNotFoundResponse, ApiConflictResponse, ApiBadRequestResponse, ApiOkResponse, ApiParam } from '@nestjs/swagger';
@@ -45,5 +46,20 @@ export class FloorController {
   @ApiParam({ name: 'id', required: true, description: 'Enter The ID Of Floor' })
   async findById(@Param('id') id: string) {
     return this.floorService.queryById(id)
+  }
+
+  @ApiOkResponse({
+    description: 'Floor Updated Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: "Floor Not Found With This ID"
+  })
+  @ApiConflictResponse({
+    description: "Name Of Floor Already Exist"
+  })
+  @ApiParam({ name: 'id', required: true, description: 'Enter The ID Of Floor' })
+  @Patch('/:id')
+  async update(@Param('id') id: string, @Body() input: UpdateFloorDto) {
+    return this.floorService.updateFloor(id, input)
   }
 }
