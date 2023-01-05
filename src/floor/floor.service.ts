@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { FilterQueries } from 'src/utils/filterQueries.util';
+import { UpdateFloorDto } from './dto/update-floor.dto';
 
 @Injectable()
 export class FloorService {
@@ -70,5 +71,45 @@ export class FloorService {
         }
 
         return floor
+    }
+
+    async updateFloor(id: string, updateDto: UpdateFloorDto) {
+        const checkPlace = await this.parckingPlaceModel.findById(updateDto.place)
+
+        if(!checkPlace) {
+            throw new NotFoundException('Place Not Found')
+        }
+
+        try{
+            const floor = await this.floorModel.findByIdAndUpdate(id, updateDto, {
+                new: true,
+                runValidators: true
+            })
+            if(!floor) {
+                throw new NotFoundException('Floor Not Found')
+            }
+
+            return floor
+        }catch(e) {
+            if(e.code === 11000) {
+                const dublicatedKey = Object.values(e.keyValue)[0]
+                throw new HttpException(
+                    {
+                        statusCode: HttpStatus.CONFLICT,
+                        message: `${dublicatedKey} Is Already Exist`,
+                        dublicatedKey
+                    },
+                    HttpStatus.CONFLICT
+                )
+            }
+            throw new HttpException(
+                {
+                    statusCode: e.response.statusCode,
+                    message: e.response.message,
+                    error: e.response.error
+                },
+                HttpStatus.NOT_FOUND
+            )
+        }
     }
 }
