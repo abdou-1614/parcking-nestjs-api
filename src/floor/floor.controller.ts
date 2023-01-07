@@ -62,4 +62,16 @@ export class FloorController {
   async update(@Param('id') id: string, @Body() input: UpdateFloorDto) {
     return this.floorService.updateFloor(id, input)
   }
+
+  @ApiOkResponse({
+    description: 'Floor Deleted Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: "Floor Not Found With This ID"
+  })
+  @ApiParam({ name: 'id', required: true, description: 'Enter The ID Of Floor' })
+  @Delete('/:id')
+  async delete(@Param('id') id: string) {
+    return this.floorService.deleteFloor(id)
+  }
 }
