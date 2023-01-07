@@ -64,10 +64,10 @@ export class FloorService {
         const isValidId = mongoose.isValidObjectId(id)
         if(!isValidId) throw new BadRequestException('NOT VALID ID')
 
-        const floor = await this.floorModel.findById(id)
+        const floor = await this.floorModel.findById(id).populate('place', 'name')
 
         if(!floor) {
-            throw new NotFoundException('FLoor Not Found With This ID')
+            throw new NotFoundException('Floor Not Found With This ID')
         }
 
         return floor
@@ -111,5 +111,15 @@ export class FloorService {
                 HttpStatus.NOT_FOUND
             )
         }
+    }
+
+    async deleteFloor(id: string): Promise<string> {
+        const floor = await this.floorModel.findByIdAndDelete(id)
+
+        if(!floor) {
+            throw new NotFoundException('Floor Not Found')
+        }
+
+        return "Floor Deleted Successfully"
     }
 }
