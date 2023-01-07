@@ -59,7 +59,7 @@ export class ParckingCategoryService {
         const isValidID = mongoose.isValidObjectId(id)
         if(!isValidID) throw new BadRequestException('NOT VALID ID')
 
-        const category = await this.parckingCategoryModel.findById(id)
+        const category = await this.parckingCategoryModel.findById(id).populate('place', 'name')
 
         if(!category) {
             throw new NotFoundException('Category Not Found')
