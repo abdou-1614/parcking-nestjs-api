@@ -10,6 +10,7 @@ import { ReportsModule } from './reports/reports.module';
 import { SettingModule } from './setting/setting.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
+import { SlotModule } from './slot/slot.module';
 
 @Module({
   imports: [
@@ -25,8 +26,8 @@ import { ConfigModule } from '@nestjs/config';
     ParckingSetupModule, 
     ParckingManagementModule, 
     ReportsModule, 
-    SettingModule
-
+    SettingModule,
+    SlotModule
   ],
 })
 export class AppModule {}
