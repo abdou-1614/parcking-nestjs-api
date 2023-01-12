@@ -11,7 +11,6 @@ import { ui_query_projection_fields } from './users.projection';
 import { UserInterface } from './interface/user.interface';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { unlinkSync } from 'fs';
-import { ChangePasswordDto } from './dto/change-password.dto';
 import { compare } from 'bcrypt';
 
 @Injectable()
