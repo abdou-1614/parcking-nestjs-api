@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Floor } from './../../floor/schema/floor.schema';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ParckingPlace } from 'src/parcking-place/schema/parcking-place.schema';
 import { ParckingCategory } from 'src/parcking-category/schema/parcking-category.schema';
 export class CreateSlotDto {
@@ -20,6 +20,7 @@ export class CreateSlotDto {
         description: 'Enter Remarks OF Slot',
         example: 'Nice Slot'
     })
+    @IsOptional()
     remarks?: string
 
     @ApiProperty({
@@ -28,6 +29,7 @@ export class CreateSlotDto {
         description: 'Enter Identity OF Slot',
         example: 'ADVCDG545'
     })
+    @IsOptional()
     identity?: string
 
     @ApiProperty({
