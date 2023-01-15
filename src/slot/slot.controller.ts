@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { SlotService } from './slot.service';
 import { CreateSlotDto } from './dto/create-slot.dto';
 import { ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
+import { UpdateSlotDto } from './dto/update-slot.dto';
 
 @Controller('slot')
 export class SlotController {
@@ -52,5 +53,21 @@ export class SlotController {
   @Get('/:id')
   async findById(@Param('id') id: string){
     return this.slotService.queryById(id)
+  }
+
+  @ApiOkResponse({
+    description: 'Slot Updated Successfully !'
+  })
+  @ApiNotFoundResponse({
+    description: 'Slot Not Found'
+  })
+  @ApiConflictResponse({
+    description: 'The Name OF Slot Is Already Use'
+  })
+  @ApiOperation({ summary: 'find Slot And Update By ID' })
+  @ApiParam({ name: 'id', description: 'Enter Slot ID', required: true })
+  @Patch('/:id')
+  async update(@Param('id') id: string, @Body() input: UpdateSlotDto){
+    return this.slotService.updateSlot(id, input)
   }
 }
