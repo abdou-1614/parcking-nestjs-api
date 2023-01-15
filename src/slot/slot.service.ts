@@ -1,6 +1,6 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Slot, SlotDocument } from './schema/slot.schema';
 import { Floor, FloorDocument } from 'src/floor/schema/floor.schema';
 import { ParckingCategory, ParckingCategoryDocument } from 'src/parcking-category/schema/parcking-category.schema';
@@ -73,6 +73,19 @@ export class SlotService {
         if(!slot) {
             throw new NotFoundException('Slot Not Found !')
         }
+
+        return slot
+    }
+
+    async queryById(id: string){
+        const isValid = mongoose.isValidObjectId(id)
+        if(!isValid) throw new BadRequestException('NOT VALID ID !')
+
+        const slot = await this.slotModel.findById(id).populate('place', 'name')
+        .populate('category', 'type')
+        .populate('floor', 'name')
+
+        if(!slot) throw new NotFoundException('Slot Not Found')
 
         return slot
     }
