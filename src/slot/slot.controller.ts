@@ -1,7 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { SlotService } from './slot.service';
 import { CreateSlotDto } from './dto/create-slot.dto';
-import { ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 
 @Controller('slot')
 export class SlotController {
@@ -26,5 +27,17 @@ export class SlotController {
   @Post()
   async create(@Body() input: CreateSlotDto){
     return this.slotService.createSlot(input)
+  }
+
+  @ApiOkResponse({
+    description: 'Slots Founds Successfully !'
+  })
+  @ApiNotFoundResponse({
+    description: 'Slot Not Found'
+  })
+  @ApiOperation({ summary: 'find All Slots' })
+  @Get()
+  async findAll(@Query() query: FilterQueryDto){
+    return this.slotService.queryAll(query)
   }
 }
