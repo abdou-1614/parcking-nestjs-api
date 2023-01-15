@@ -9,6 +9,7 @@ import { CreateSlotDto } from './dto/create-slot.dto';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { FilterQueries } from 'src/utils/filterQueries.util';
 import { ui_projection_query_slot } from './slot.projection';
+import { UpdateSlotDto } from './dto/update-slot.dto';
 
 @Injectable()
 export class SlotService {
@@ -88,5 +89,55 @@ export class SlotService {
         if(!slot) throw new NotFoundException('Slot Not Found')
 
         return slot
+    }
+
+    async updateSlot(id: string, input: UpdateSlotDto){
+        const isValid = mongoose.isValidObjectId(id)
+        if(!isValid) throw new BadRequestException('NOT VALID ID !')
+        const place = await this.parckingPlaceModel.findById(input.place)
+        if(!place){
+            throw new NotFoundException('Place Not Found')
+        }
+        const category = await this.parckingCategoryModel.findById(input.category)
+
+        if(!category){
+            throw new NotFoundException('Category Not Found')
+        }
+        const floor = await this.floorModel.findById(input.floor)
+
+        if(!floor){
+            throw new NotFoundException('Floor Not Found')
+        }
+
+        try{
+            const slot = await this.slotModel.findByIdAndUpdate(id, input, {
+                new: true,
+                runValidators: true
+            })
+            if(!slot) throw new NotFoundException('Slot Not Found')
+
+            return slot
+        }catch(e){
+            if(e.code === 11000){
+                const dublicatedKey = Object.values(e.keyValue)[0]
+                throw new HttpException(
+                {
+                    statusCode: HttpStatus.CONFLICT,
+                    message: `${dublicatedKey} is Already Exist`,
+                    dublicatedKey
+
+                }, HttpStatus.CONFLICT
+                )
+            }
+
+            throw new HttpException(
+                {
+                    statusCode: e.response.statusCode,
+                    message: e.response.message,
+                    error: e.response.error
+                },
+                HttpStatus.NOT_FOUND
+            )
+        }
     }
 }
