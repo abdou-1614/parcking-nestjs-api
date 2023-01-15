@@ -6,6 +6,9 @@ import { Floor, FloorDocument } from 'src/floor/schema/floor.schema';
 import { ParckingCategory, ParckingCategoryDocument } from 'src/parcking-category/schema/parcking-category.schema';
 import { ParckingPlace, ParckingPlaceDocument } from 'src/parcking-place/schema/parcking-place.schema';
 import { CreateSlotDto } from './dto/create-slot.dto';
+import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
+import { FilterQueries } from 'src/utils/filterQueries.util';
+import { ui_projection_query_slot } from './slot.projection';
 
 @Injectable()
 export class SlotService {
@@ -51,5 +54,26 @@ export class SlotService {
             console.log(e)
             throw new ServiceUnavailableException()
         }
+    }
+
+    async queryAll(query: FilterQueryDto){
+        const filterQuery = new FilterQueries(
+            this.slotModel,
+            query,
+            ui_projection_query_slot
+        )
+
+        filterQuery.filter().limitField().paginate().sort()
+
+        const slot = await filterQuery.query
+        .populate('place', 'name')
+        .populate('category', 'type')
+        .populate('floor', 'name')
+
+        if(!slot) {
+            throw new NotFoundException('Slot Not Found !')
+        }
+
+        return slot
     }
 }
