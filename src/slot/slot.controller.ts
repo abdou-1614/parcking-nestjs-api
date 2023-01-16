@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { SlotService } from './slot.service';
 import { CreateSlotDto } from './dto/create-slot.dto';
 import { ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
@@ -69,5 +69,18 @@ export class SlotController {
   @Patch('/:id')
   async update(@Param('id') id: string, @Body() input: UpdateSlotDto){
     return this.slotService.updateSlot(id, input)
+  }
+
+  @ApiOkResponse({
+    description: 'Slot Deleted Successfully !'
+  })
+  @ApiNotFoundResponse({
+    description: 'Slot Not Found'
+  })
+  @ApiOperation({ summary: 'find Slot And Delete By ID' })
+  @ApiParam({ name: 'id', description: 'Enter Slot ID', required: true })
+  @Delete('/:id')
+  async delete(@Param('id') id: string){
+    return this.slotService.deleteSlot(id)
   }
 }
