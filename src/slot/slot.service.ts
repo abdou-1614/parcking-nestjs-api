@@ -140,4 +140,13 @@ export class SlotService {
             )
         }
     }
+
+    async deleteSlot(id: string){
+        const isValid = mongoose.isValidObjectId(id)
+        if(!isValid) throw new BadRequestException('NOT VALID ID !')
+        const slot = await this.slotModel.findByIdAndDelete(id)
+        if(!slot) throw new NotFoundException('Slot Not Found !')
+
+        return 'Slot Deleted Successfully !'
+    }
 }
