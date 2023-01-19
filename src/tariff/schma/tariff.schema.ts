@@ -14,13 +14,15 @@ export class Tariff {
     name: string
 
     @Prop({ 
-        type: String, 
+        type: Date, 
         required: false,
      })
-    start_date?: string
+    start_date?: Date
 
-    @Prop({ type: String })
-    end_date?: string
+    @Prop({ 
+        type: Date 
+    })
+    end_date?: Date
 
     @Prop({ type: Number })
     min_amount: number
@@ -52,8 +54,3 @@ export class Tariff {
 }
 
 export const TariffSchema = SchemaFactory.createForClass(Tariff)
-
-TariffSchema.pre('save', async function(next: Function){
-    this.start_date = format(new Date(), 'YYYY/MM/DD HH:mm:ss')
-    next()
-})
