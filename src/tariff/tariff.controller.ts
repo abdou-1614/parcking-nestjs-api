@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { TariffService } from './tariff.service';
 import { CreateTariffDto } from './dto/create-tariff.dto';
-import { ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 
 @ApiTags('Tariff')
@@ -35,5 +35,18 @@ export class TariffController {
   @Get()
   async find(@Query() query: FilterQueryDto){
     return this.tariffService.queryAll(query)
+  }
+
+  @ApiOkResponse({
+    description: 'Tariff Found Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: 'Tariff Not Found !'
+  })
+  @ApiOperation({ summary: 'Find Tariff By Its ID' })
+  @Get('/:id')
+  @ApiParam({ description: 'Enter ID Of Tariff', name: 'id', required: true })
+  async findByID(@Param('id') id: string){
+    return this.tariffService.queryByID(id)
   }
 }
