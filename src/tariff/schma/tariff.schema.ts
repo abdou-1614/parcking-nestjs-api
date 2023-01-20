@@ -3,8 +3,6 @@ import mongoose from "mongoose";
 import { TARIFF_STATUS } from "src/constants/tariff.constant";
 import { ParckingPlace } from "src/parcking-place/schema/parcking-place.schema";
 import { ParckingCategory } from 'src/parcking-category/schema/parcking-category.schema'
-import { format } from 'date-and-time';
-import moment from "moment";
 
 export type TariffDocument = Tariff & mongoose.Document
 
