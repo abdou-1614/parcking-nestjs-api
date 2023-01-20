@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { TariffService } from './tariff.service';
 import { CreateTariffDto } from './dto/create-tariff.dto';
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
@@ -66,10 +66,23 @@ export class TariffController {
   @ApiBadRequestResponse({
     description: 'NOT VALID ID'
   })
-  @ApiOperation({ summary: 'Find Tariff By Its ID And UPdate' })
+  @ApiOperation({ summary: 'Find Tariff By Its ID And Update' })
   @Patch('/:id')
   @ApiParam({ description: 'Enter ID Of Tariff', name: 'id', required: true })
   async update(@Param('id') id: string, @Body() input: UpdateTariffDto){
     return this.tariffService.updateTariff(id, input)
+  }
+
+  @ApiNotFoundResponse({
+    description: 'Tariff Not Found !'
+  })
+  @ApiBadRequestResponse({
+    description: 'NOT VALID ID'
+  })
+  @ApiOperation({ summary: 'Find Tariff By Its ID And Delete' })
+  @ApiParam({ description: 'Enter ID Of Tariff', name: 'id', required: true })
+  @Delete('/:id')
+  async delete(@Param('id') id: string){
+    return this.tariffService.deleteTariff(id)
   }
 }
