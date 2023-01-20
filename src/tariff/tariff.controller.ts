@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { TariffService } from './tariff.service';
 import { CreateTariffDto } from './dto/create-tariff.dto';
-import { ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
+import { UpdateTariffDto } from './dto/update-tariff.dto';
 
 @ApiTags('Tariff')
 @Controller('tariff')
@@ -48,5 +49,27 @@ export class TariffController {
   @ApiParam({ description: 'Enter ID Of Tariff', name: 'id', required: true })
   async findByID(@Param('id') id: string){
     return this.tariffService.queryByID(id)
+  }
+
+  @ApiOkResponse({
+    description: 'Tariff Updated Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: 'Tariff Not Found !'
+  })
+  @ApiNotFoundResponse({
+    description: 'Place Not Found !'
+  })
+  @ApiNotFoundResponse({
+    description: 'Type Not Found !'
+  })
+  @ApiBadRequestResponse({
+    description: 'NOT VALID ID'
+  })
+  @ApiOperation({ summary: 'Find Tariff By Its ID And UPdate' })
+  @Patch('/:id')
+  @ApiParam({ description: 'Enter ID Of Tariff', name: 'id', required: true })
+  async update(@Param('id') id: string, @Body() input: UpdateTariffDto){
+    return this.tariffService.updateTariff(id, input)
   }
 }
