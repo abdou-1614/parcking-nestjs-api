@@ -73,4 +73,14 @@ export class TariffService {
         return tariff
     }
 
+    async deleteTariff(id: string){
+        const isValidID = mongoose.isValidObjectId(id)
+        if(!isValidID) throw new BadRequestException('NOT VALID ID')
+
+        const tariff = await this.tariffModel.findByIdAndDelete(id)
+        if(!tariff) throw new NotFoundException('Tariff Not Found!')
+
+        return "Tariff Deleted Successfully"
+    }
+
 }
