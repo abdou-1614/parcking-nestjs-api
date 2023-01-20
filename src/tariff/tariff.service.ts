@@ -8,6 +8,7 @@ import { CreateTariffDto } from './dto/create-tariff.dto';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { FilterQueries } from 'src/utils/filterQueries.util';
 import { ui_projection_query_tariff } from './tariff.projection';
+import { UpdateTariffDto } from './dto/update-tariff.dto';
 
 @Injectable()
 export class TariffService {
@@ -47,6 +48,26 @@ export class TariffService {
         if(!isValidID) throw new BadRequestException('NOT VALID ID')
 
         const tariff = await this.tariffModel.findById(id)
+        if(!tariff) throw new NotFoundException('Tariff Not Found')
+
+        return tariff
+    }
+
+    async updateTariff(id: string, input: UpdateTariffDto) {
+        const isValidID = mongoose.isValidObjectId(id)
+        if(!isValidID) throw new BadRequestException('NOT VALID ID')
+
+        const place = await this.parckingPlaceModel.findById(input.place)
+        if(!place) throw new NotFoundException('Place Not Found')
+
+        const category = await this.parckingCategoryModel.findById(input.type)
+        if(!category) throw new NotFoundException('Type Not Found')
+
+        const tariff = await this.tariffModel.findByIdAndUpdate(id, input, {
+            new: true,
+            runValidators: true
+        })
+
         if(!tariff) throw new NotFoundException('Tariff Not Found')
 
         return tariff
