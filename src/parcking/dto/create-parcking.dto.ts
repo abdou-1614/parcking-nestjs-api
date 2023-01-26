@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { Type } from "class-transformer"
 import { IsNotEmpty, IsNumber, IsString } from "class-validator"
+import { ApiFile } from "src/common/decorators/api-file.decorator"
 import { ParckingCategory } from "src/parcking-category/schema/parcking-category.schema"
 import { ParckingPlace } from "src/parcking-place/schema/parcking-place.schema"
 import { Slot } from "src/slot/schema/slot.schema"
