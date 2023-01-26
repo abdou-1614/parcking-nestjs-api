@@ -1,10 +1,14 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import * as dayjs from 'dayjs'
 import mongoose, { Model } from "mongoose";
-import { ParckingCategory } from "src/parcking-category/schema/parcking-category.schema";
+import { join } from "path";
+import { Floor, FloorDocument } from "src/floor/schema/floor.schema";
+import { ParckingCategory, ParckingCategoryDocument } from "src/parcking-category/schema/parcking-category.schema";
 import { ParckingPlace } from "src/parcking-place/schema/parcking-place.schema";
-import { Slot } from "src/slot/schema/slot.schema";
+import { Slot, SlotDocument } from "src/slot/schema/slot.schema";
 import { TariffDocument, Tariff } from 'src/tariff/schma/tariff.schema'
+const qr = require('qr-image')
+import { writeFileSync } from "fs"
 
 export type ParckingDocument = Parcking & mongoose.Document 
 
@@ -42,6 +46,35 @@ export type ParckingDocument = Parcking & mongoose.Document
             this.duration = `${hours} hour, ${minutes} minutes`
 
             return await this.save()
+        },
+
+        async generateQrcode(this: ParckingDocument, slot: slotModel, type: categoryModel, floor?: floorModel){
+            const category = await type.findById(this.type)
+            const slotName = await slot.findById(this.slot)
+            const floorName = await floor.findById(slotName.floor)
+            const data = {
+                vehicle_Number: this.vehicle_Number,
+                in_time: this.in_time,
+                driver_Name: this.driver_Name,
+                driver_Mobile: this.driver_Mobile,
+                type: category.type,
+                slot: slotName.name,
+                floor: floorName.name
+            }
+
+            const qr_image = qr.imageSync(JSON.stringify(data), { type: 'png' })
+
+            const fileName = `${this.vehicle_Number}-${this.driver_Name}-qrcode.png`
+
+            const qrPath = `${process.cwd()}/tmp/`
+
+            const file = join(qrPath, fileName)
+
+            writeFileSync(file, qr_image)
+
+            this.qrCode = fileName
+
+            return this
         }
     }
 })
@@ -57,9 +90,8 @@ export class Parcking {
         required: false,
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tariff',
-        default: 0
     })
-    amount: number
+    amount: Tariff
 
     @Prop({
         required: false,
@@ -75,7 +107,7 @@ export class Parcking {
 
     @Prop({
         required: true,
-        type: Date
+        type: String
     })
     driver_Mobile: string
 
@@ -94,13 +126,6 @@ export class Parcking {
     @Prop({
         required: true,
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'ParckingPlace'
-    })
-    place: ParckingPlace
-
-    @Prop({
-        required: true,
-        type: mongoose.Schema.Types.ObjectId,
         ref: 'ParckingCategory'
     })
     type: ParckingCategory
@@ -112,11 +137,23 @@ export class Parcking {
         ref: "Slot"
     })
     slot: Slot
+
+    @Prop({
+        type: String,
+        required: false
+    })
+    qrCode: string
+
+    generateQrcode: (slot: slotModel, type: categoryModel, floor?: floorModel) => Promise<Parcking>
 }
 
 export const ParckingSchema = SchemaFactory.createForClass(Parcking)
 
 export interface TariffModel extends Model<TariffDocument | Tariff> {}
+export interface slotModel extends Model<SlotDocument | Slot> {}
+export interface categoryModel extends Model<ParckingCategoryDocument | ParckingCategory> {}
+export interface floorModel extends Model<Floor | FloorDocument> {}
+
 
 ParckingSchema.pre('save', async function(next: Function){
     this.in_time = dayjs().format('YYYY-MM-DD HH:mm:ss')
