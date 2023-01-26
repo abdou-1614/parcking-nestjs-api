@@ -6,6 +6,7 @@ import { Slot, SlotDocument } from 'src/slot/schema/slot.schema';
 import { ParckingPlace, ParckingPlaceDocument } from 'src/parcking-place/schema/parcking-place.schema';
 import { ParckingCategory, ParckingCategoryDocument } from 'src/parcking-category/schema/parcking-category.schema';
 import { CreateParckingDto } from './dto/create-parcking.dto';
+import { Floor, FloorDocument } from 'src/floor/schema/floor.schema';
 
 @Injectable()
 export class ParckingService {
@@ -13,7 +14,8 @@ export class ParckingService {
         @InjectModel(Parcking.name) private parckingModel: Model<ParckingDocument>,
         @InjectModel(Slot.name) private slotgModel: Model<SlotDocument>,
         @InjectModel(ParckingPlace.name) private parckingPlaceModel: Model<ParckingPlaceDocument>,
-        @InjectModel(ParckingCategory.name) private ParckingCategoryModel: Model<ParckingCategoryDocument>, 
+        @InjectModel(ParckingCategory.name) private ParckingCategoryModel: Model<ParckingCategoryDocument>,
+        @InjectModel(Floor.name) private floorModel: Model<FloorDocument>, 
         ){}
 
         async createParcking(input: CreateParckingDto){
@@ -28,6 +30,8 @@ export class ParckingService {
             
             try{
                 const parking = await this.parckingModel.create(input)
+                await parking.generateQrcode(this.slotgModel, this.ParckingCategoryModel, this.floorModel)
+                await parking.save()
                 return parking
             }catch(e){
                 if(e.code === 11000){
