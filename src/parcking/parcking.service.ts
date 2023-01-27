@@ -1,7 +1,7 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Parcking, ParckingDocument } from './schema/parcking.schema';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Slot, SlotDocument } from 'src/slot/schema/slot.schema';
 import { ParckingPlace, ParckingPlaceDocument } from 'src/parcking-place/schema/parcking-place.schema';
 import { ParckingCategory, ParckingCategoryDocument } from 'src/parcking-category/schema/parcking-category.schema';
@@ -85,15 +85,31 @@ export class ParckingService {
                 populate: {path: 'floor', select: 'name'}
             })
             .populate({
-                path: 'amount',
-                select: 'hour'
-            })
-            .populate({
                 path: 'type',
                 select: 'type'
             })
 
             if(!parking) throw new NotFoundException('Parking Not Found !')
+
+            return parking
+        }
+
+        async findById(id: string){
+            const validId = mongoose.isValidObjectId(id)
+            if(!validId) throw new BadRequestException('Not Valid ID')
+
+            const parking = await this.parckingModel.findById(id).populate({
+                path: 'slot',
+                select: 'name',
+                populate: {path: 'floor', select: 'name'}
+            })
+            .populate({
+                path: 'type',
+                select: 'type'
+            })
+            if(!parking) {
+                throw new NotFoundException('Parking Not Found')
+            }
 
             return parking
         }
