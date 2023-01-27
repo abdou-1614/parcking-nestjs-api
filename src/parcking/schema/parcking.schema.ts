@@ -6,7 +6,7 @@ import { Floor, FloorDocument } from "src/floor/schema/floor.schema";
 import { ParckingCategory, ParckingCategoryDocument } from "src/parcking-category/schema/parcking-category.schema";
 import { ParckingPlace } from "src/parcking-place/schema/parcking-place.schema";
 import { Slot, SlotDocument } from "src/slot/schema/slot.schema";
-import { TariffDocument, Tariff } from 'src/tariff/schma/tariff.schema'
+import { TariffDocument, Tariff, TariffSchema } from 'src/tariff/schma/tariff.schema'
 const qr = require('qr-image')
 import { writeFileSync } from "fs"
 
@@ -88,10 +88,10 @@ export class Parcking {
 
     @Prop({
         required: false,
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tariff',
+        type: Number,
+        default: 0,
     })
-    amount: Tariff
+    amount: number
 
     @Prop({
         required: false,
@@ -140,7 +140,8 @@ export class Parcking {
 
     @Prop({
         type: String,
-        required: false
+        required: false,
+        trim: true
     })
     qrCode: string
 
