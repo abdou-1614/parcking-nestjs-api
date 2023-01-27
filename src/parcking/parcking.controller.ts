@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ParckingService } from './parcking.service';
-import { ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CreateParckingDto } from './dto/create-parcking.dto';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 
@@ -40,5 +40,21 @@ export class ParckingController {
   @Get()
   async findAll(@Query() query: FilterQueryDto){
     return this.parckingService.findAll(query)
+  }
+
+  @ApiOkResponse({
+    description: 'Parking Found Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: 'Parking Not Found'
+  })
+  @ApiBadRequestResponse({
+    description: 'Not Valid ID'
+  })
+  @ApiOperation({ summary: 'Find All Parcking' })
+  @Get('/:id')
+  @ApiParam({ required: true, description: 'Enter Parking ID', name: 'ID' })
+  async findById(@Param('id') id: string){
+    return this.parckingService.findById(id)
   }
 }
