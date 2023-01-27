@@ -7,6 +7,7 @@ import { Slot, SlotSchema } from 'src/slot/schema/slot.schema';
 import { ParckingPlace, ParckingPlaceSchema } from 'src/parcking-place/schema/parcking-place.schema';
 import { ParckingCategory, ParckingCategorySchema } from 'src/parcking-category/schema/parcking-category.schema';
 import { Floor, FloorSchema } from 'src/floor/schema/floor.schema';
+import { Tariff, TariffSchema } from 'src/tariff/schma/tariff.schema';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { Floor, FloorSchema } from 'src/floor/schema/floor.schema';
       { name: Slot.name, schema: SlotSchema },
       { name: ParckingPlace.name, schema: ParckingPlaceSchema },
       { name: ParckingCategory.name, schema: ParckingCategorySchema },
-      { name: Floor.name, schema: FloorSchema }
+      { name: Floor.name, schema: FloorSchema },
+      { name: Tariff.name, schema: TariffSchema }
     ])
   ],
   controllers: [ParckingController],
