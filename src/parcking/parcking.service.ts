@@ -7,6 +7,10 @@ import { ParckingPlace, ParckingPlaceDocument } from 'src/parcking-place/schema/
 import { ParckingCategory, ParckingCategoryDocument } from 'src/parcking-category/schema/parcking-category.schema';
 import { CreateParckingDto } from './dto/create-parcking.dto';
 import { Floor, FloorDocument } from 'src/floor/schema/floor.schema';
+import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
+import { FilterQueries } from 'src/utils/filterQueries.util';
+import { ui_projection_query_parking } from './parking.projection';
+import { Tariff, TariffDocument } from 'src/tariff/schma/tariff.schema';
 
 @Injectable()
 export class ParckingService {
@@ -16,6 +20,7 @@ export class ParckingService {
         @InjectModel(ParckingPlace.name) private parckingPlaceModel: Model<ParckingPlaceDocument>,
         @InjectModel(ParckingCategory.name) private ParckingCategoryModel: Model<ParckingCategoryDocument>,
         @InjectModel(Floor.name) private floorModel: Model<FloorDocument>, 
+        @InjectModel(Tariff.name) private tariffModel: Model<TariffDocument>, 
         ){}
 
         async createParcking(input: CreateParckingDto){
@@ -30,6 +35,21 @@ export class ParckingService {
             
             try{
                 const parking = await this.parckingModel.create(input)
+                const carType = parking.type
+                const tariff = await this.tariffModel.aggregate([
+                    {
+                        $match: {
+                            type: carType
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 0,
+                            hour: 1
+                        }
+                    }
+                ])
+                parking.amount = tariff[0].hour
                 await parking.generateQrcode(this.slotgModel, this.ParckingCategoryModel, this.floorModel)
                 await parking.save()
                 return parking
@@ -47,5 +67,34 @@ export class ParckingService {
 
                 throw new ServiceUnavailableException(e)
             }
+        }
+
+        async findAll(query: FilterQueryDto){
+            const filterQuery = new FilterQueries(
+                this.parckingModel,
+                query,
+                ui_projection_query_parking
+            )
+
+            filterQuery.filter().limitField().paginate().sort()
+
+            const parking = filterQuery.query
+            .populate({
+                path: 'slot',
+                select: 'name',
+                populate: {path: 'floor', select: 'name'}
+            })
+            .populate({
+                path: 'amount',
+                select: 'hour'
+            })
+            .populate({
+                path: 'type',
+                select: 'type'
+            })
+
+            if(!parking) throw new NotFoundException('Parking Not Found !')
+
+            return parking
         }
 }
