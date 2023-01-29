@@ -56,6 +56,18 @@ export class ParckingController {
   }
 
   @ApiOkResponse({
+    description: 'Current Parking Found Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: 'Parking Not Found'
+  })
+  @ApiOperation({ summary: 'Find All Current Parcking' })
+  @Get('current')
+  async findCurrent(){
+    return this.parckingService.findCurrentParking()
+  }
+
+  @ApiOkResponse({
     description: 'Parking Found Successfully'
   })
   @ApiNotFoundResponse({
