@@ -11,6 +11,8 @@ import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { FilterQueries } from 'src/utils/filterQueries.util';
 import { ui_projection_query_parking } from './parking.projection';
 import { Tariff, TariffDocument } from 'src/tariff/schma/tariff.schema';
+import { UpdateParckingDto } from './dto/update-parking.dto';
+import { unlinkSync } from 'fs';
 
 @Injectable()
 export class ParckingService {
@@ -63,8 +65,6 @@ export class ParckingService {
                     }, HttpStatus.CONFLICT)
                 }
 
-                console.log(e)
-
                 throw new ServiceUnavailableException(e)
             }
         }
@@ -112,5 +112,85 @@ export class ParckingService {
             }
 
             return parking
+        }
+
+        async findEndedParking(){
+
+            const parking = await this.parckingModel.find({out_time: { $exists: true }}).select({ui_projection_query_parking})
+
+            if(parking.length === 0) throw new NotFoundException('Ended Parking Not Found')
+
+            return parking
+        }
+
+        async update(id: string, input: UpdateParckingDto){
+            const validId = mongoose.isValidObjectId(id)
+            if(!validId) throw new BadRequestException('Not Valid ID')
+
+            const place = await this.parckingPlaceModel.findById(input.place)
+            if(!place) throw new NotFoundException('Place Not Found')
+
+            const type = await this.ParckingCategoryModel.findById(input.type)
+            if(!type) throw new NotFoundException('Type Not Found')
+
+            const slot = await this.slotgModel.findById(input.slot)
+            if(!slot) throw new NotFoundException('Slot Not Found')
+
+            try{
+                const foundParking = await this.parckingModel.findById(id)
+                if(!foundParking) throw new NotFoundException('Parking Not Found')
+                const parking = await this.parckingModel.findByIdAndUpdate(id, input, {
+                    new: true,
+                    runValidators: true
+                })
+                const filePath = this.getPath(foundParking.qrCode)
+                unlinkSync(filePath)
+                const carType = parking.type
+                const tariff = await this.tariffModel.aggregate([
+                    {
+                        $match: {
+                            type: carType
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 0,
+                            hour: 1
+                        }
+                    }
+                ])
+                parking.amount = tariff[0].hour
+                await parking.generateQrcode(this.slotgModel, this.ParckingCategoryModel, this.floorModel)
+                await parking.save()
+                return parking
+            }catch(e){
+                if(e.code === 11000){
+                    const dublicatedKey = Object.values(e.keyValue)[0]
+                    throw new HttpException({
+                        statusCode: HttpStatus.CONFLICT,
+                        message: `${dublicatedKey} Already Exist`,
+                        dublicatedKey
+                    }, HttpStatus.CONFLICT)
+                }
+
+                throw new ServiceUnavailableException(e)
+            }
+        }
+
+        async deleteParking(id: string){
+            const validId = mongoose.isValidObjectId(id)
+            if(!validId) throw new BadRequestException('Not Valid ID')
+
+            const parking = await this.parckingModel.findByIdAndDelete(id)
+            if(!parking) throw new NotFoundException('Parking Not Found')
+
+            const filePath = this.getPath(parking.qrCode)
+            unlinkSync(filePath)
+
+            return 'Parking Deleted Successfully'
+        }
+
+        private getPath(qrCode: string){
+            return `${process.cwd()}/tmp/${qrCode}`
         }
 }
