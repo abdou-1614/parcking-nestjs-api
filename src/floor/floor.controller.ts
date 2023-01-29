@@ -3,8 +3,9 @@ import { FilterQueryDto } from './../common/dto/filterquery.dto';
 import { Controller, Post, Body, Get, Query, Param, Patch, Delete } from '@nestjs/common';
 import { FloorService } from './floor.service';
 import { CreateFloorDto } from './dto/create-floor.dto';
-import { ApiOperation, ApiCreatedResponse, ApiNotFoundResponse, ApiConflictResponse, ApiBadRequestResponse, ApiOkResponse, ApiParam } from '@nestjs/swagger';
+import { ApiOperation, ApiCreatedResponse, ApiNotFoundResponse, ApiConflictResponse, ApiBadRequestResponse, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('FLOOR')
 @Controller('floor')
 export class FloorController {
   constructor(private readonly floorService: FloorService) {}
