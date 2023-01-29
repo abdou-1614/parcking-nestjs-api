@@ -123,6 +123,19 @@ export class ParckingService {
             return parking
         }
 
+        async findCurrentParking(){
+            const parking = await this.parckingModel.find({out_time: null}).populate({
+                path: 'slot',
+                select: 'name',
+            })
+            .populate({
+                path: 'type',
+                select: 'type'
+            }).select('_id qrCode vehicle_Number in_time')
+            if(parking.length === 0) throw new NotFoundException('Parking Not Found')
+            return parking
+        }
+
         async update(id: string, input: UpdateParckingDto){
             const validId = mongoose.isValidObjectId(id)
             if(!validId) throw new BadRequestException('Not Valid ID')
