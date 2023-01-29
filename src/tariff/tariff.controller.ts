@@ -5,7 +5,7 @@ import { ApiBadRequestResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkRe
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { UpdateTariffDto } from './dto/update-tariff.dto';
 
-@ApiTags('Tariff')
+@ApiTags('TARIFF')
 @Controller('tariff')
 export class TariffController {
   constructor(private readonly tariffService: TariffService) {}
