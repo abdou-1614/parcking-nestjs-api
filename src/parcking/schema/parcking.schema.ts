@@ -15,7 +15,7 @@ export type ParckingDocument = Parcking & mongoose.Document
 @Schema({ 
     timestamps: true,
     methods: {
-        async calculateAmount(this: ParckingDocument, out_time: string, model: TariffModel){
+        async calculateAmount(this: ParckingDocument, out_time: string){
             const start = Number(dayjs(this.in_time));
             const end = Number(dayjs(out_time));
           
@@ -24,13 +24,14 @@ export type ParckingDocument = Parcking & mongoose.Document
             const hours = Math.floor(duration / (1000 * 60 * 60));
             const minutes = Math.floor((duration / (1000 * 60)) % 60);
           
-            const tariff = await model.findById(this.amount);
-            const price = tariff.hour;
+            const price = this.amount;
           
             const totalPerHour = price * hours;
-            const feesPerMinutes = Math.ceil(minutes / 2) / totalPerHour;
+            const feesPerMinutes = price / 60;
+
+            const additionalCostForMinutes = minutes * feesPerMinutes;
           
-            const total = Math.ceil(totalPerHour + feesPerMinutes);
+            const total = totalPerHour + additionalCostForMinutes;
           
             return total;
         },
@@ -43,9 +44,14 @@ export type ParckingDocument = Parcking & mongoose.Document
             const hours = Math.floor(duration / (1000 * 60 * 60));
             const minutes = Math.floor((duration / (1000 * 60)) % 60);
 
-            this.duration = `${hours} hour, ${minutes} minutes`
+            if (hours === 0) {
+                this.duration = `${minutes} min`;
+            } else {
+                this.duration = `${hours} hour, ${minutes} min`;
+            }
 
-            return await this.save()
+            await this.save()
+            return this.duration
         },
 
         async generateQrcode(this: ParckingDocument, slot: slotModel, type: categoryModel, floor?: floorModel){
@@ -91,7 +97,7 @@ export class Parcking {
         type: Number,
         default: 0
     })
-    payable_amount: string
+    payable_amount: number
 
     @Prop({
         required: false,
@@ -131,7 +137,7 @@ export class Parcking {
     out_time: string
 
     @Prop({
-        required: true,
+        required: false,
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ParckingCategory'
     })
@@ -139,7 +145,7 @@ export class Parcking {
 
 
     @Prop({
-        required: true,
+        required: false,
         type: mongoose.Schema.Types.ObjectId,
         ref: "Slot"
     })
@@ -153,6 +159,8 @@ export class Parcking {
     qrCode: string
 
     generateQrcode: (slot: slotModel, type: categoryModel, floor?: floorModel) => Promise<Parcking>
+    calculateDuration: (out_time: string) => Promise<any>
+    calculateAmount: (out_time: string) => Promise<number>
 }
 
 export const ParckingSchema = SchemaFactory.createForClass(Parcking)
@@ -161,9 +169,3 @@ export interface TariffModel extends Model<TariffDocument | Tariff> {}
 export interface slotModel extends Model<SlotDocument | Slot> {}
 export interface categoryModel extends Model<ParckingCategoryDocument | ParckingCategory> {}
 export interface floorModel extends Model<Floor | FloorDocument> {}
-
-
-ParckingSchema.pre('save', async function(next: Function){
-    this.in_time = dayjs().format('YYYY-MM-DD HH:mm:ss')
-    next()
-})
