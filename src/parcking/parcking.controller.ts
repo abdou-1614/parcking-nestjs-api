@@ -26,7 +26,7 @@ export class ParckingController {
     description: ' Vehicle Number Aleardy Exsit'
   })
   @ApiOperation({ summary: 'Create Parcking' })
-  @Post()
+  @Post('create')
   async create(@Body() input: CreateParckingDto){
     return this.parckingService.createParcking(input)
   }
@@ -38,9 +38,14 @@ export class ParckingController {
     description: 'Parking Not Found'
   })
   @ApiOperation({ summary: 'Find All Parcking' })
-  @Get()
+  @Get('all')
   async findAll(@Query() query: FilterQueryDto){
     return this.parckingService.findAll(query)
+  }
+  @ApiOperation({ summary: 'Get PArking Statics' })
+  @Get('/parking-stats')
+  async findAllStats(){
+    return this.parckingService.parkingStats()
   }
 
   @ApiOkResponse({
@@ -68,6 +73,18 @@ export class ParckingController {
   }
 
   @ApiOkResponse({
+    description: 'Scan Qr Code Parking Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: 'Parking Not Found'
+  })
+  @ApiOperation({ summary: 'Scan Qr Code and Get All Data' })
+  @Post('/scan-qrCode/:qrCode')
+  async scanQrCode(@Param('qrCode') qrCode: string){
+    return this.parckingService.scanQrCodeAndEndParking(qrCode)
+  }
+
+  @ApiOkResponse({
     description: 'Parking Found Successfully'
   })
   @ApiNotFoundResponse({
@@ -77,7 +94,7 @@ export class ParckingController {
     description: 'Not Valid ID'
   })
   @ApiOperation({ summary: 'Find Parcking By It"s ID' })
-  @Get('/:id')
+  @Get('/get-single-parking/:id')
   @ApiParam({ required: true, description: 'Enter Parking ID', name: 'ID' })
   async findById(@Param('id') id: string){
     return this.parckingService.findById(id)
@@ -105,7 +122,7 @@ export class ParckingController {
     description: ' Vehicle Number Aleardy Exsit'
   })
   @ApiOperation({ summary: 'Find Parcking By Id And Update' })
-  @Patch('/:id')
+  @Patch('/update/:id')
   @ApiParam({ required: true, description: 'Enter Parking ID', name: 'ID' })
   async updateParking(@Param('id') id: string, @Body() input: UpdateParckingDto){
     return this.parckingService.update(id, input)
@@ -118,7 +135,7 @@ export class ParckingController {
     description: 'Parking Not Found'
   })
   @ApiOperation({ summary: 'Find Parcking By Id And Delete' })
-  @Delete('/:id')
+  @Delete('/delete/:id')
   @ApiParam({ required: true, description: 'Enter Parking ID', name: 'ID' })
   async delete(@Param('id') id: string){
     return this.parckingService.deleteParking(id)
