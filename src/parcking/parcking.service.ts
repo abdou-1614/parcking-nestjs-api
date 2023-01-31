@@ -13,6 +13,8 @@ import { ui_projection_query_parking } from './parking.projection';
 import { Tariff, TariffDocument } from 'src/tariff/schma/tariff.schema';
 import { UpdateParckingDto } from './dto/update-parking.dto';
 import { unlinkSync } from 'fs';
+import * as dayjs from 'dayjs'
+import { SLOT_STATUS } from 'src/constants/slot.constant'
 
 @Injectable()
 export class ParckingService {
@@ -36,7 +38,10 @@ export class ParckingService {
             if(!slot) throw new NotFoundException('Slot Not Found')
             
             try{
-                const parking = await this.parckingModel.create(input)
+                const parking = await this.parckingModel.create({
+                    ...input,
+                    in_time: dayjs().format('YYYY-MM-DD HH:mm:ss')
+                })
                 const carType = parking.type
                 const tariff = await this.tariffModel.aggregate([
                     {
@@ -116,7 +121,7 @@ export class ParckingService {
 
         async findEndedParking(){
 
-            const parking = await this.parckingModel.find({out_time: { $exists: true }}).select({ui_projection_query_parking})
+            const parking = await this.parckingModel.find({out_time: { $exists: true }}).select('qrCode vehicle_Number in_time out_time payable_amount')
 
             if(parking.length === 0) throw new NotFoundException('Ended Parking Not Found')
 
@@ -201,6 +206,139 @@ export class ParckingService {
             unlinkSync(filePath)
 
             return 'Parking Deleted Successfully'
+        }
+
+        async scanQrCodeAndEndParking(qrCode: string){
+            const parking = await this.parckingModel.findOne({qrCode})
+            if(!parking) throw new NotFoundException('Parking Not Found')
+
+            parking.out_time = dayjs().format('YYYY-MM-DD HH:mm:ss')
+            parking.duration = await parking.calculateDuration(parking.out_time)
+            parking.payable_amount = await parking.calculateAmount(parking.out_time)
+
+            parking.slot = null
+
+            await parking.save()
+
+            return parking
+        }
+
+        async parkingStats(){
+            const amountStats = await this.parckingModel.aggregate([
+               {
+                $group: {
+                    _id: null,
+                    'Total Amount': { $sum: '$payable_amount' },
+                    'Total Parking': { $sum: 1 },
+                }
+               }
+              ]);
+              const endedParkingStats = await this.parckingModel.aggregate([
+                {
+                    $match: {
+                        out_time: { $exists: true}
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        'Total Ended Parking': { $sum: 1 }
+                    }
+                }
+              ])
+              const currentParkingStats = await this.parckingModel.aggregate([
+                {
+                    $match: {
+                        out_time: { $exists: false}
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        'Total Current Parking': { $sum: 1 },
+                    }
+                },
+              ])
+
+              const totalSlot = await this.slotgModel.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        'Total Slots': { $sum: 1 },
+                        'Total Available Status': {
+                            $sum: {
+                                $cond: [
+                                    { $eq: ['$status', SLOT_STATUS.ACTIVE] }, 1, 0
+                                ]
+                            }
+                        },
+                        'Total Booked Slot': {
+                            $sum: {
+                                $cond: [
+                                    { $eq: [ '$status', SLOT_STATUS.INACTIVE ] }, 1, 0
+                                ]
+                            }
+                        }
+                    }
+                }
+              ])
+
+              const today = dayjs().startOf('day')
+              const thisMonth = dayjs().startOf('month')
+              const thisYear = dayjs().startOf('year')
+
+              const dailyAmount = await this.parckingModel.aggregate([
+                {
+                    $match: {
+                        in_time: {
+                            $gte: today.format('YYYY-MM-DD HH:mm:ss'),
+                            $lt: dayjs().endOf('day').format('YYYY-MM-DD HH:mm:ss')
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        'Total Daily Amount': { $sum: '$payable_amount' }
+                    }
+                }
+              ])
+
+              const monthlyAmount = await this.parckingModel.aggregate([
+                {
+                    $match: {
+                        in_time: {
+                            $gte: thisMonth.format('YYYY-MM-DD HH:mm:ss'),
+                            $lt: dayjs().endOf('month').format('YYYY-MM-DD HH:mm:ss')
+                        }
+                    }  
+                },
+                {
+                    $group: {
+                        _id: null,
+                        'Total Monthly Amount': { $sum: '$payable_amount' }
+                    }
+                }
+              ])
+              const yearlyAmount = await this.parckingModel.aggregate([
+                {
+                    $match: {
+                        in_time: {
+                            $gte: thisYear.format('YYYY-MM-DD HH:mm:ss'),
+                            $lt: dayjs().endOf('year').format('YYYY-MM-DD HH:mm:ss')
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        'Total Yearly Amount': { $sum: '$payable_amount' }
+                    }
+                }
+              ])
+              console.log({monthlyAmount, dailyAmount, yearlyAmount})
+              
+              return [...amountStats, ...endedParkingStats, ...currentParkingStats, ...totalSlot, ...dailyAmount, ...monthlyAmount, ...yearlyAmount]
         }
 
         private getPath(qrCode: string){
