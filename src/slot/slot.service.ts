@@ -38,6 +38,8 @@ export class SlotService {
         }
         try{
             const slot = await this.slotModel.create(input)
+            floor.slot.push(slot.id)
+            await floor.save();
             return slot
         }catch(e){
             if(e.code === 11000){
