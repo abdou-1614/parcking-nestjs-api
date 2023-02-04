@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose from "mongoose";
 import { PARCKING_PLACE_STATUS } from "src/constants/parcking-place-constant";
+import { Floor } from "src/floor/schema/floor.schema";
 
 export type ParckingPlaceDocument = ParckingPlace & mongoose.Document
 
@@ -27,6 +28,12 @@ export class ParckingPlace {
         default: PARCKING_PLACE_STATUS.ACTIVE
     })
     status: PARCKING_PLACE_STATUS
+
+    @Prop([{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Floor'
+    }])
+    floor?: Floor[]
 }
 
 export const ParckingPlaceSchema = SchemaFactory.createForClass(ParckingPlace)
