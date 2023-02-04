@@ -36,6 +36,9 @@ export class ParckingService {
 
             const slot = await this.slotgModel.findById(input.slot)
             if(!slot) throw new NotFoundException('Slot Not Found')
+            if(slot.status === SLOT_STATUS.INACTIVE){
+                throw new BadRequestException('SLOT Already Booked')
+            }
             
             try{
                 const parking = await this.parckingModel.create({
@@ -57,6 +60,7 @@ export class ParckingService {
                     }
                 ])
                 parking.amount = tariff[0].hour
+                await this.slotgModel.findOneAndUpdate({_id: parking.slot}, { $set: { status: SLOT_STATUS.INACTIVE } }, { new: true })
                 await parking.generateQrcode(this.slotgModel, this.ParckingCategoryModel, this.floorModel)
                 await parking.save()
                 return parking
@@ -202,6 +206,8 @@ export class ParckingService {
             const parking = await this.parckingModel.findByIdAndDelete(id)
             if(!parking) throw new NotFoundException('Parking Not Found')
 
+            await this.slotgModel.findOneAndUpdate({ _id: parking.slot }, { $set: { status: SLOT_STATUS.ACTIVE } }, { new: true } )
+
             const filePath = this.getPath(parking.qrCode)
             unlinkSync(filePath)
 
@@ -216,7 +222,7 @@ export class ParckingService {
             parking.duration = await parking.calculateDuration(parking.out_time)
             parking.payable_amount = await parking.calculateAmount(parking.out_time)
 
-            parking.slot = null
+            await this.slotgModel.findOneAndUpdate({ _id: parking.slot }, { $set: { status: SLOT_STATUS.ACTIVE } }, { new: true } ) 
 
             await parking.save()
 
