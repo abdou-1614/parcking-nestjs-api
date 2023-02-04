@@ -25,6 +25,8 @@ export class FloorService {
         }
         try{
             const floor = await this.floorModel.create(input)
+            checkPlace.floor.push(floor.id)
+            await checkPlace.save()
             return floor
         }catch(e) {
             if(e.code === 11000){
