@@ -2,6 +2,7 @@ import { ParckingPlace } from './../../parcking-place/schema/parcking-place.sche
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose from 'mongoose';
 import { FLOOR_STATUS } from "src/constants/floor.constants";
+import { ParckingCategory } from 'src/parcking-category/schema/parcking-category.schema';
 import { Slot } from 'src/slot/schema/slot.schema';
 
 export type FloorDocument = Floor & mongoose.Document
@@ -45,6 +46,12 @@ export class Floor {
         required: true
     })
     place: ParckingPlace
+
+    @Prop([{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ParckingCategory',
+    }])
+    type: ParckingCategory[]
 }
 
 export const FloorSchema = SchemaFactory.createForClass(Floor)
