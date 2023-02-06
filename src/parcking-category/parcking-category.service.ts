@@ -9,16 +9,22 @@ import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { FilterQueries } from 'src/utils/filterQueries.util';
 import { ui_query_projection_category } from './parcking-category.projection';
 import { UpdateParckingCategoryDto } from './dto/update-parcking-category.dto';
+import { Floor, FloorDocument } from 'src/floor/schema/floor.schema';
+import { Slot, SlotDocument } from 'src/slot/schema/slot.schema';
 
 @Injectable()
 export class ParckingCategoryService {
     constructor( 
         @InjectModel(ParckingCategory.name) private readonly parckingCategoryModel: Model<ParckingCategoryDocument>,
         @InjectModel(ParckingPlace.name) private readonly parckingPlaceModel: Model<ParckingPlaceDocument>,
+        @InjectModel(Slot.name) private readonly slotModel: Model<SlotDocument>,
+        @InjectModel(Floor.name) private readonly floorModel: Model<FloorDocument>,
     ) {}
 
 
     async createCategory(input: CreateParckingCategoryDto) {
+        const place = await this.parckingPlaceModel.findById(input.place)
+        if(!place) throw new NotFoundException('Place Not Found')
         try{
             const category = await this.parckingCategoryModel.create(input)
             return category
