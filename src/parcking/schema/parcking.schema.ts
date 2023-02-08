@@ -152,6 +152,13 @@ export class Parcking {
     slot: Slot
 
     @Prop({
+        required: false,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ParckingPlace"
+    })
+    place: ParckingPlace
+
+    @Prop({
         type: String,
         required: false,
         trim: true
