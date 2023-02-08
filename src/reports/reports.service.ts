@@ -9,6 +9,7 @@ import { Slot, SlotDocument } from 'src/slot/schema/slot.schema';
 import { SummaryReportDto } from './dto/summary-reports.dto';
 import { ReportDocument, Reports } from './schema/reports.schema';
 import { SLOT_STATUS } from 'src/constants/slot.constant';
+import * as dayjs from "dayjs"
 
 @Injectable()
 export class ReportsService {
@@ -110,5 +111,128 @@ export class ReportsService {
         }
       ]);
       return slotReport;
+    }
+
+    async getSummaryReport(input: SummaryReportDto){
+    const dateMatch = {};
+    let match = {}
+    if (input.floor) {
+      const floorName = await this.floorModel.findById(input.floor)
+      match = { "floorDetails": floorName }
+    }
+    if (input.place) {
+      const placeName = await this.parckingPlaceModel.findById(input.place)
+      match = {...match, "place": placeName }
+    }
+   if (input.type) {
+      const type = await this.ParckingCategoryModel.findById(input.type);
+     if (!type) throw new NotFoundException('Category Name Not Found');
+      match = {...match, "type": type}
+    }
+    
+    if (input.from_Date && input.to_Date) {
+      dateMatch['out_time'] = {
+        $gte: dayjs(input.from_Date).format("YYYY-MM-DD HH:mm:ss"),
+        $lte: dayjs(input.to_Date).format("YYYY-MM-DD HH:mm:ss"),
+      };
+    }
+
+      const date = {
+        out_time: {
+          $gte: dayjs(input.from_Date).format("YYYY-MM-DD HH:mm:ss"),
+          $lte: dayjs(input.to_Date).format("YYYY-MM-DD HH:mm:ss")
+        }
+      }
+      const summaryReport = await this.parckingModel.aggregate([
+        {
+          $match: dateMatch
+        },
+        {
+          $lookup: {
+              from: "slots",
+              localField: "slot",
+              foreignField: "_id",
+              as: "slotDetails"
+          }
+      },
+      {
+        $unwind: "$slotDetails"
+      },
+      {
+        $lookup: {
+          from: "floors",
+          localField: "slotDetails.floor",
+          foreignField: "_id",
+          as: "floorDetails"
+        }
+      },
+      {
+        $unwind: "$floorDetails"
+      },
+      {
+        $lookup: {
+            from: "parckingplaces",
+            localField: "place",
+            foreignField: "_id",
+            as: "place"
+        }
+      },
+      {
+        $unwind: "$place"
+      },
+      {
+        $lookup: {
+            from: "parckingcategories",
+            localField: "type",
+            foreignField: "_id",
+            as: "type"
+        }
+      },
+      {
+        $unwind: "$type"
+      },
+      {
+        $match: match
+      },
+        {
+          $group: {
+              _id: {
+                  place: "$place.name",
+                  floor: "$floorDetails.name",
+                  type: "$type.type"
+              },
+              totalParked: { $sum: 1 },
+              totalAmount: { $sum: "$payable_amount" }
+          }
+      },
+      {
+          $group: {
+              _id: {
+                  place: "$_id.place",
+                  floor: "$_id.floor"
+              },
+              totalParked: { $sum: "$totalParked" },
+              category: {
+                  $push: {
+                      type: "$_id.type",
+                      count: "$totalParked",
+                      totalAmount: "$totalAmount"
+                  }
+              },
+              totalAmount: { $sum: "$totalAmount" }
+          }
+      },
+      {
+          $project: {
+              _id: 0,
+              place: "$_id.place",
+              floor: "$_id.floor",
+              totalParked: "$totalParked",
+              category: "$category",
+              totalAmount: "$totalAmount"
+          }
+      }
+      ])
+      return summaryReport
     }
 }
