@@ -12,4 +12,8 @@ export class ReportsController {
   async getReports(@Query() query: SummaryReportDto){
     return this.reportsService.getReport(query)
   }
+  @Get('summary-report')
+  async SummaryReport(@Query() query: SummaryReportDto){
+    return this.reportsService.getSummaryReport(query)
+  }
 }
