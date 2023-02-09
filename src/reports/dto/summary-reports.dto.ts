@@ -7,25 +7,50 @@ import { Slot } from "src/slot/schema/slot.schema"
 
 export class SummaryReportDto {
 
-    @ApiProperty()
+    @ApiProperty({
+        name: "from_Date",
+        required: false,
+        description: "Enter From Date",
+        example: "2023-01-01 14:00:00"
+    })
     @IsOptional()
     from_Date?: string
 
-    @ApiProperty()
+    @ApiProperty({
+        name: "to_Date",
+        required: false,
+        description: "Enter To Date",
+        example: "2023-02-01 18:00:00"
+    })
     @IsOptional()
     to_Date?: string
 
-    @ApiProperty()
+    @ApiProperty({
+        name: "place",
+        required: false,
+        description: "Enter The Place",
+        example: "63dfa5ee662cd84f15254e3f"
+    })
     @IsOptional()
     @IsString()
     place?: ParckingPlace
 
-    @ApiProperty()
+    @ApiProperty({
+        name: "type",
+        required: false,
+        description: "Enter The Category",
+        example: "63dfb04b6ed94a01dbf27e97",
+    })
     @IsOptional()
     @IsString()
     type?: ParckingCategory
 
-    @ApiProperty()
+    @ApiProperty({
+        name: "floor",
+        required: false,
+        description: "Enter The Floor",
+        example: "63dfa61b662cd84f15254e47"
+    })
     @IsOptional()
     @IsString()
     floor?: Floor
