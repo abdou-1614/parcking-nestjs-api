@@ -10,6 +10,7 @@ import { SummaryReportDto } from './dto/summary-reports.dto';
 import { ReportDocument, Reports } from './schema/reports.schema';
 import { SLOT_STATUS } from 'src/constants/slot.constant';
 import * as dayjs from "dayjs"
+import { DetailsReportsDto } from './dto/details-reports.dto';
 
 @Injectable()
 export class ReportsService {
@@ -136,13 +137,6 @@ export class ReportsService {
         $lte: dayjs(input.to_Date).format("YYYY-MM-DD HH:mm:ss"),
       };
     }
-
-      const date = {
-        out_time: {
-          $gte: dayjs(input.from_Date).format("YYYY-MM-DD HH:mm:ss"),
-          $lte: dayjs(input.to_Date).format("YYYY-MM-DD HH:mm:ss")
-        }
-      }
       const summaryReport = await this.parckingModel.aggregate([
         {
           $match: dateMatch
@@ -234,5 +228,120 @@ export class ReportsService {
       }
       ])
       return summaryReport
+    }
+
+    async detailsReport(input: DetailsReportsDto){
+      let dateMatch = {}
+      let match = {}
+      if(input.driver_Name){
+        match = { "driver_Name": input.driver_Name }
+      }
+      if(input.driver_Mobile){
+        match = { "driver_Mobile": input.driver_Mobile }
+      }
+      if(input.vehicle_Number){
+        match= {...match, "vehicle_Number": input.vehicle_Number }
+      }
+      if (input.floor) {
+        const floorName = await this.floorModel.findById(input.floor)
+        match = {...match, "floorDetails": floorName }
+      }
+      if (input.place) {
+        const placeName = await this.parckingPlaceModel.findById(input.place)
+        match = {...match, "place": placeName }
+      }
+     if (input.type) {
+        const type = await this.ParckingCategoryModel.findById(input.type);
+       if (!type) throw new NotFoundException('Category Name Not Found');
+        match = {...match, "type": type}
+      }
+      if (input.from_Date && input.to_Date) {
+        dateMatch['out_time'] = {
+          $gte: dayjs(input.from_Date).format("YYYY-MM-DD HH:mm:ss"),
+          $lte: dayjs(input.to_Date).format("YYYY-MM-DD HH:mm:ss"),
+        };
+      }
+      const detailsReport = await this.parckingModel.aggregate([
+        {
+          $match: dateMatch
+        },
+        {
+          $lookup: {
+            from: "slots",
+            localField: "slot",
+            foreignField: "_id",
+            as: 'slot'
+          }
+        },
+        {
+          $unwind: "$slot"
+        },
+        {
+          $lookup: {
+            from: 'floors',
+            localField: 'slot.floor',
+            foreignField: '_id',
+            as: 'floorDetails'
+          }
+        },
+        {
+          $unwind: '$floorDetails'
+        },
+        {
+          $lookup: {
+            from: 'parckingcategories',
+            localField: 'type',
+            foreignField: '_id',
+            as: 'type'
+          }
+        },
+        {
+          $unwind: '$type'
+        },
+        {
+          $lookup: {
+            from: "parckingplaces",
+            localField: "place",
+            foreignField: "_id",
+            as: 'place'
+          }
+        },
+        {
+          $unwind: '$place'
+        },
+        {
+          $match: match
+        },
+        {
+          $group: {
+            _id: {
+              place: '$place.name',
+              floor: '$floorDetails.name',
+              category: '$type.type',
+              slot: '$slot.name'
+            },
+            totalAmount: { $first: "$payable_amount" },
+            amount: { $first: '$amount' },
+            vehicle_Number: { $first: '$vehicle_Number' },
+            in_time: { $first: '$in_time' },
+            out_time: { $first: '$out_time' },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            place: '$_id.place',
+            category: '$_id.category',
+            floor: '$_id.floor',
+            slot: '$_id.slot',
+            vehicle_Number: '$vehicle_Number',
+            amount: '$amount',
+            in_time: 1,
+            out_time: 1,
+            totalAmount: '$totalAmount'
+          }
+        }
+      ])
+      return detailsReport
     }
 }
