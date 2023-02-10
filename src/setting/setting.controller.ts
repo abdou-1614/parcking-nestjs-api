@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Post, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseInterceptors } from '@nestjs/common';
 import { SettingService } from './setting.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadBodyInterceptor } from 'src/common/interceptors/fileUpload.interceptor';
 import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateSettingDto } from './dto/create-setting.dto';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
+import { UpdateSettingDto } from './dto/update-setting.dto';
 
 @ApiTags('WEBSITE-INFORMATION')
 @Controller('setting')
@@ -47,5 +48,22 @@ export class SettingController {
   @Get(':id')
   async findById(@Param('id') id: string){
     return this.settingService.findById(id)
+  }
+
+  @ApiNotFoundResponse({
+    description: 'No Info Found'
+  })
+  @ApiOkResponse({
+    description: 'Setting Updated Successfully'
+  })
+  @ApiOperation({ description: 'Find Logo and Name by ID and Update' })
+  @ApiBody({
+    type: UpdateSettingDto
+  })
+  @ApiConsumes('multipart/form-data')
+  @Patch(':id')
+  @UseInterceptors(FileInterceptor('image'), FileUploadBodyInterceptor)
+  async update(@Param('id') id: string, @Body() input: UpdateSettingDto){
+    return this.settingService.updateSetting(id, input)
   }
 }
