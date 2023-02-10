@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseInterceptors } from '@nestjs/common';
 import { SettingService } from './setting.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadBodyInterceptor } from 'src/common/interceptors/fileUpload.interceptor';
@@ -35,5 +35,17 @@ export class SettingController {
   @Get()
   async find(@Query() query: FilterQueryDto){
     return this.settingService.findAll(query)
+  }
+
+  @ApiNotFoundResponse({
+    description: 'No Info Found'
+  })
+  @ApiOkResponse({
+    description: 'Setting Found Successfully'
+  })
+  @ApiOperation({ description: 'Find Logo and Name Of Website By IT"s ID' })
+  @Get(':id')
+  async findById(@Param('id') id: string){
+    return this.settingService.findById(id)
   }
 }
