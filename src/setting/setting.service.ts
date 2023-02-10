@@ -67,6 +67,21 @@ export class SettingService {
 
         return setting
     }
+
+    async deleteSetting(id: string){
+        const isValidID = mongoose.isValidObjectId(id)
+        if(!isValidID) throw new BadRequestException('NOT VALID ID')
+
+        const setting = await this.settingModel.findByIdAndDelete(id)
+        if(!setting) throw new NotFoundException('No Info Found')
+
+        const path = this.getPath(setting.image)
+
+        if(path){
+            unlinkSync(path)
+        }
+        return 'Parking Deleted Successfully'
+    }
     private getPath(image: string){
         return `${process.cwd()}/tmp/${image}`
     }
