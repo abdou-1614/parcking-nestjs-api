@@ -1,9 +1,10 @@
-import { Body, Controller, Post, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseInterceptors } from '@nestjs/common';
 import { SettingService } from './setting.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadBodyInterceptor } from 'src/common/interceptors/fileUpload.interceptor';
-import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateSettingDto } from './dto/create-setting.dto';
+import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 
 @ApiTags('WEBSITE-INFORMATION')
 @Controller('setting')
@@ -22,5 +23,17 @@ export class SettingController {
   @UseInterceptors(FileInterceptor('image'), FileUploadBodyInterceptor)
   async create(@Body() input: CreateSettingDto){
     return this.settingService.createSetting(input)
+  }
+
+  @ApiNotFoundResponse({
+    description: 'No Info Found'
+  })
+  @ApiOkResponse({
+    description: 'Setting Found Successfully'
+  })
+  @ApiOperation({ description: 'Find All Logos and Names Of Website' })
+  @Get()
+  async find(@Query() query: FilterQueryDto){
+    return this.settingService.findAll(query)
   }
 }
