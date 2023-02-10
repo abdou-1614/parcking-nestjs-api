@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Setting, SettingDocument } from './schema/setting.schema';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateSettingDto } from './dto/create-setting.dto';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { FilterQueries } from 'src/utils/filterQueries.util';
@@ -30,6 +30,15 @@ export class SettingService {
         if(setting.length === 0){
             throw new NotFoundException('No Info Found')
         }
+        return setting
+    }
+    async findById(id: string){
+        const isValidID = mongoose.isValidObjectId(id)
+        if(!isValidID) throw new BadRequestException('NOT VALID ID')
+
+        const setting = await this.settingModel.findById(id)
+        if(!setting) throw new NotFoundException('No Info Found')
+
         return setting
     }
 }
