@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseInterceptors } from '@nestjs/common';
 import { SettingService } from './setting.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadBodyInterceptor } from 'src/common/interceptors/fileUpload.interceptor';
-import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CreateSettingDto } from './dto/create-setting.dto';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { UpdateSettingDto } from './dto/update-setting.dto';
@@ -46,6 +46,7 @@ export class SettingController {
   })
   @ApiOperation({ description: 'Find Logo and Name Of Website By IT"s ID' })
   @Get(':id')
+  @ApiParam({ required: true, name: 'ID', description: 'Enter Setting ID' })
   async findById(@Param('id') id: string){
     return this.settingService.findById(id)
   }
@@ -63,7 +64,20 @@ export class SettingController {
   @ApiConsumes('multipart/form-data')
   @Patch(':id')
   @UseInterceptors(FileInterceptor('image'), FileUploadBodyInterceptor)
+  @ApiParam({ required: true, name: 'ID', description: 'Enter Setting ID' })
   async update(@Param('id') id: string, @Body() input: UpdateSettingDto){
     return this.settingService.updateSetting(id, input)
+  }
+  @ApiNotFoundResponse({
+    description: 'No Info Found'
+  })
+  @ApiOkResponse({
+    description: 'Setting Deleted Successfully'
+  })
+  @ApiOperation({ description: 'Find Logo and Name by ID and Delete' })
+  @Delete(':id')
+  @ApiParam({ required: true, name: 'ID', description: 'Enter Setting ID' })
+  async delete(@Param('id') id: string){
+    return this.settingService.deleteSetting(id)
   }
 }
