@@ -10,6 +10,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { SlotModule } from './slot/slot.module';
 import { ParckingModule } from './parcking/parcking.module';
+import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { AccessJwtGuard } from './auth/access-jwt-auth.guard';
 
 @Module({
   imports: [
@@ -25,7 +28,14 @@ import { ParckingModule } from './parcking/parcking.module';
     TariffModule,
     ReportsModule, 
     SettingModule,
-    SlotModule
+    SlotModule,
+    AuthModule
   ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AccessJwtGuard
+    }
+  ]
 })
 export class AppModule {}
