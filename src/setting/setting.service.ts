@@ -80,7 +80,7 @@ export class SettingService {
         if(path){
             unlinkSync(path)
         }
-        return 'Parking Deleted Successfully'
+        return 'Setting Deleted Successfully'
     }
     private getPath(image: string){
         return `${process.cwd()}/tmp/${image}`
