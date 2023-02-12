@@ -13,9 +13,10 @@ export class SettingService {
     constructor( @InjectModel(Setting.name) private settingModel: Model<SettingDocument> ){}
 
     async createSetting(input: CreateSettingDto){
+        const {name, image} = input
         const setting = await this.settingModel.create({
-            name: input.name,
-            image: input.image.filename
+            name,
+            image: image ? image.filename : image
         })
         return setting
     }
