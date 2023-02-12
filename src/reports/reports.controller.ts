@@ -1,9 +1,12 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ReportsService } from './reports.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { SummaryReportDto } from './dto/summary-reports.dto';
 import { DetailsReportsDto } from './dto/details-reports.dto';
+import { IsAdmin } from 'src/common/decorators/is-admin.decorator';
 
+@IsAdmin()
+@ApiBearerAuth()
 @ApiTags('REPORTS')
 @Controller('reports')
 export class ReportsController {
