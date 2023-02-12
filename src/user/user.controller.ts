@@ -3,19 +3,19 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { Controller, Post, UseInterceptors, Body, Param, Patch, Delete } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
-import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConsumes, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileUploadBodyInterceptor } from 'src/common/interceptors/fileUpload.interceptor';
 import { Get, Query } from '@nestjs/common/decorators';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Public } from 'src/auth/public.decorator';
+import { IsAdmin } from 'src/common/decorators/is-admin.decorator';
 
+@IsAdmin()
 @ApiTags('USERS')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Public()
   @ApiCreatedResponse({
     type: UserInterface,
     description: 'User Created Successfully'
@@ -26,6 +26,7 @@ export class UserController {
   @ApiInternalServerErrorResponse({
     description: 'Can"t create user ( likely caused by insufficient write permission )'
   })
+  @ApiBearerAuth()
   @ApiBody({ type: CreateUserDto })
   @ApiOperation({ summary: 'Registration User'})
   @ApiConsumes('multipart/form-data')
@@ -35,6 +36,7 @@ export class UserController {
     return this.userService.createUser(input)
   }
 
+  
   @ApiOkResponse({
     type: [UserInterface],
     description: 'Find Users Successfully'
@@ -43,6 +45,7 @@ export class UserController {
     description: 'Users Not Found'
   })
   @ApiOperation({ summary: 'Get all users' })
+  @ApiBearerAuth()
   @Get()
   async findAll(@Query() query: FilterQueryDto) {
     return await this.userService.queryAllUsers(query)
@@ -52,6 +55,7 @@ export class UserController {
     type: UserInterface,
     description: 'Find User Successfully'
   })
+  @ApiBearerAuth()
   @ApiNotFoundResponse({
     description: 'User Not Found With This ID'
   })
@@ -71,6 +75,7 @@ export class UserController {
   @ApiBody({ type: UpdateUserDto })
   @ApiOperation({ summary: 'Update User Details' })
   @ApiConsumes('multipart/form-data')
+  @ApiBearerAuth()
   @Patch('/:id')
   @UseInterceptors(FileInterceptor('image'), FileUploadBodyInterceptor)
   async update(@Param('id') id: string, @Body() updateDto: UpdateUserDto) {
@@ -85,6 +90,7 @@ export class UserController {
   })
   @ApiOperation({ summary: 'Delete Users' })
   @Delete('/:id')
+  @ApiBearerAuth()
   async delete(@Param('id') id: string) {
     return this.userService.deleteUser(id)
   }
