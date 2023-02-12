@@ -2,11 +2,14 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseIntercepto
 import { SettingService } from './setting.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadBodyInterceptor } from 'src/common/interceptors/fileUpload.interceptor';
-import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CreateSettingDto } from './dto/create-setting.dto';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { UpdateSettingDto } from './dto/update-setting.dto';
+import { IsAdmin } from 'src/common/decorators/is-admin.decorator';
 
+@IsAdmin()
+@ApiBearerAuth()
 @ApiTags('WEBSITE-INFORMATION')
 @Controller('setting')
 export class SettingController {
