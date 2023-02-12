@@ -8,12 +8,14 @@ import { FileUploadBodyInterceptor } from 'src/common/interceptors/fileUpload.in
 import { Get, Query } from '@nestjs/common/decorators';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Public } from 'src/auth/public.decorator';
 
 @ApiTags('USERS')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Public()
   @ApiCreatedResponse({
     type: UserInterface,
     description: 'User Created Successfully'

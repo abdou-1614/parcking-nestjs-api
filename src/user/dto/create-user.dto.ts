@@ -31,7 +31,6 @@ export class CreateUserDto {
     })
     @IsString()
     @IsNotEmpty()
-    @Min(6, { message: 'Password Must Be More Tha 6 Characters' })
     password: string
 
     @ApiFile()

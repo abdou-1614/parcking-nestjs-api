@@ -1,4 +1,4 @@
-import { UserSchema } from './schema/user.schema';
+import { User, UserSchema } from './schema/user.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
@@ -8,8 +8,8 @@ import { MulterConfig } from 'src/utils/multer.util';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
-    MulterModule.register(MulterConfig)
+    MulterModule.register(MulterConfig),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   controllers: [UserController],
   providers: [UserService]

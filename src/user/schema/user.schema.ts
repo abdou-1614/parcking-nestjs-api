@@ -16,10 +16,10 @@ export class User {
     @Prop({ type: String, required: true, trim: true, lowercase: true })
     email: string
 
-    @Prop({ type: String, required: true, select: false })
+    @Prop({ type: String, required: true })
     password: string
 
-    @Prop({ type: String })
+    @Prop({ type: String, required: false })
     image?: string
 
     @Prop({
