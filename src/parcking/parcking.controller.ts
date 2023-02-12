@@ -1,10 +1,13 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ParckingService } from './parcking.service';
-import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CreateParckingDto } from './dto/create-parcking.dto';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { UpdateParckingDto } from './dto/update-parking.dto';
+import { IsAdmin } from 'src/common/decorators/is-admin.decorator';
 
+@IsAdmin()
+@ApiBearerAuth()
 @ApiTags('PARCKING')
 @Controller('parcking')
 export class ParckingController {
