@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import mongoose, { Model } from "mongoose";
 import { User, UserDocument } from "src/user/schema/user.schema";
 import { LoginDto } from "./dto/login.dto";
 import { JwtService, JwtSignOptions } from "@nestjs/jwt";
@@ -8,6 +8,7 @@ import { ConfigService } from "@nestjs/config";
 import { compare } from "bcrypt";
 import { omit } from "lodash";
 import { LoginResponseDto } from "./dto/login-response.dto";
+import { UpdatePasswordDto } from "./dto/update-password.dto";
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,29 @@ export class AuthService {
         const payload = { sub: user._id, userRole: user.role }
 
         const accessToken = await this.generateAccessToken(payload)
+
+        return {
+            accessToken
+        }
+    }
+
+    async changePassword(id: string, input: UpdatePasswordDto): Promise<LoginResponseDto>{
+        const { old_password, new_password } = input
+        const isValidId = mongoose.isValidObjectId(id)
+        if(!isValidId) throw new BadRequestException('INVALID ID')
+
+        const user = await this.userModel.findOne({ _id: id }).select('password')
+        if(!user) throw new NotFoundException('User Not Found')
+
+        const isCorrectPassword = await compare(old_password, user.password)
+        if(!isCorrectPassword) throw new BadRequestException('the entered password is invalid')
+
+        const payload = { sub: user._id, userRole: user.role }
+
+        const accessToken = await this.generateAccessToken(payload)
+
+        user.password = new_password
+        await user.save()
 
         return {
             accessToken
