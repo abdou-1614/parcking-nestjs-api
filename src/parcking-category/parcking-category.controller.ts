@@ -1,10 +1,13 @@
 import { FilterQueryDto } from './../common/dto/filterquery.dto';
 import { Controller, Post, Body, Get, Query, Param, Patch, Delete } from '@nestjs/common';
 import { ParckingCategoryService } from './parcking-category.service';
-import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CreateParckingCategoryDto } from './dto/create-parcking-category.dto';
 import { UpdateParckingCategoryDto } from './dto/update-parcking-category.dto';
+import { IsAdmin } from 'src/common/decorators/is-admin.decorator';
 
+@IsAdmin()
+@ApiBearerAuth()
 @ApiTags('PARCKING_CATEGORY')
 @Controller('parcking-category')
 export class ParckingCategoryController {
