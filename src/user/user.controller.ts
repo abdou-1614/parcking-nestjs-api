@@ -9,8 +9,9 @@ import { Get, Query } from '@nestjs/common/decorators';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { IsAdmin } from 'src/common/decorators/is-admin.decorator';
+import { Public } from 'src/auth/public.decorator';
 
-@IsAdmin()
+@Public()
 @ApiTags('USERS')
 @Controller('user')
 export class UserController {
