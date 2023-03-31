@@ -46,7 +46,14 @@ export class ParckingPlaceService {
 
         filterQuery.filter().limitField().paginate().sort()
 
-        const place = filterQuery.query
+        const place = filterQuery.query.populate({
+            path: 'floor',
+            select: 'name',
+            populate: {
+                path: 'slot',
+                select: 'name status'
+            }
+        })
 
         if(!place) {
             throw new NotFoundException('Parcking Places Not Found')
@@ -72,14 +79,29 @@ export class ParckingPlaceService {
         const isValidID = mongoose.isValidObjectId(id)
         if(!isValidID) throw new BadRequestException('NOT VALID ID') 
 
-        const place = await this.parckingPlaceModel.findByIdAndUpdate(id, input, {
-            new: true
-        })
-
-        if(!place) {
-            throw new NotFoundException('Place Not Found')
+        try{
+            const place = await this.parckingPlaceModel.findByIdAndUpdate(id, input, {
+                new: true
+            })
+    
+            if(!place) {
+                throw new NotFoundException('Place Not Found')
+            }
+            return place
+        }catch(e){
+            if(e.code === 11000) {
+                const duplicateKey = Object.values(e.keyValue)[0] 
+                throw new HttpException(
+                    {
+                    statusCode: HttpStatus.CONFLICT,
+                    message: duplicateKey + " Already Used",
+                    duplicateKey
+                }, 
+                HttpStatus.CONFLICT
+                )
+            }
+            throw new ServiceUnavailableException()
         }
-        return place
     }
 
     async deletePlace(id: string) {
