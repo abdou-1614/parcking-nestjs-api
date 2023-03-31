@@ -75,22 +75,34 @@ export class ParckingCategoryService {
     }
 
     async update(id: string, input: UpdateParckingCategoryDto) {
-        const { type, place } = input
-
-        if(type) await this.checkTypeExist(type)
-
-        const checkPlaceExist = await this.parckingPlaceModel.findById(place)
+        const isValidID = mongoose.isValidObjectId(id)
+        if(!isValidID) throw new BadRequestException('NOT VALID ID') 
+        const checkPlaceExist = await this.parckingPlaceModel.findById(input.place)
         if(!checkPlaceExist) throw new BadRequestException('the entered place is invalid')
-
-        const updateCategory = await this.parckingCategoryModel.findByIdAndUpdate(id, input, {
-            new: true
-        })
-
-        if(!updateCategory) {
-            throw new NotFoundException('Category Not Found !')
+        try{
+            const updateCategory = await this.parckingCategoryModel.findByIdAndUpdate(id, input, {
+                new: true
+            })
+    
+            if(!updateCategory) {
+                throw new NotFoundException('Category Not Found !')
+            }
+    
+            return updateCategory
+        }catch(e){
+            if(e.code === 11000) {
+                const duplicateKey = Object.values(e.keyValue)[0] 
+                throw new HttpException(
+                    {
+                    statusCode: HttpStatus.CONFLICT,
+                    message: duplicateKey + " Already Used",
+                    duplicateKey
+                }, 
+                HttpStatus.CONFLICT
+                )
+            }
+            throw new ServiceUnavailableException()
         }
-
-        return updateCategory
     }
 
     async deleteCategory(id: string): Promise<string> {
@@ -103,10 +115,5 @@ export class ParckingCategoryService {
         }
 
         return "Parcking Category Deleted Successfully"
-    }
-
-    private async checkTypeExist(type: string) {
-        const categoryType = await this.parckingCategoryModel.findOne({ type })
-        if(categoryType) throw new BadRequestException(' This Type Already Exists ')
     }
 }
