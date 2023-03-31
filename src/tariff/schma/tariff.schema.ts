@@ -24,10 +24,10 @@ export class Tariff {
     })
     end_date?: Date
 
-    @Prop({ type: Number })
+    @Prop({ type: Number, default: 0.00 })
     min_amount: number
 
-    @Prop({ type: Number })
+    @Prop({ type: Number, default: 0.00 })
     hour: number
 
     @Prop({
