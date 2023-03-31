@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import * as dayjs from 'dayjs'
+import dayjs from 'dayjs'
 import mongoose, { Model } from "mongoose";
 import { join } from "path";
 import { Floor, FloorDocument } from "src/floor/schema/floor.schema";
@@ -59,6 +59,7 @@ export type ParckingDocument = Parcking & mongoose.Document
             const slotName = await slot.findById(this.slot)
             const floorName = await floor.findById(slotName.floor)
             const data = {
+                id: this.id,
                 vehicle_Number: this.vehicle_Number,
                 in_time: this.in_time,
                 driver_Name: this.driver_Name,
@@ -164,6 +165,14 @@ export class Parcking {
         trim: true
     })
     qrCode: string
+
+
+    @Prop({
+        required: false,
+        type: Number,
+        default: 0
+    })
+    paid_amount: number
 
     generateQrcode: (slot: slotModel, type: categoryModel, floor?: floorModel) => Promise<Parcking>
     calculateDuration: (out_time: string) => Promise<any>
