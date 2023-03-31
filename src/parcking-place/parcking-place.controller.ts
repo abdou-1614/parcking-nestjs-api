@@ -5,6 +5,7 @@ import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedRe
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { UpdateParckingPlaceDto } from './dto/update-place.dto';
 import { IsAdmin } from 'src/common/decorators/is-admin.decorator';
+import { Public } from 'src/auth/public.decorator';
 
 @IsAdmin()
 @ApiBearerAuth()
