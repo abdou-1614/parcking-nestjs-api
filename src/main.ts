@@ -25,15 +25,15 @@ async function bootstrap() {
   }))
 
   const config = new DocumentBuilder()
-  .setTitle('Parcking Backend')
-  .setDescription('Parcking Management For Backend')
+  .setTitle('Parking Backend')
+  .setDescription('Parking Management For Backend')
   .setVersion('0.0.1')
   .addBearerAuth()
   .build()
 
   const document = SwaggerModule.createDocument(app, config)
   SwaggerModule.setup('doc', app, document, {
-    customSiteTitle: 'Parcking Swagger API'
+    customSiteTitle: 'Parking Swagger API'
   })
 
   await app.listen( process.env.PORT || 4000);
