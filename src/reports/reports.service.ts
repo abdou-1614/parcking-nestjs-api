@@ -9,7 +9,7 @@ import { Slot, SlotDocument } from 'src/slot/schema/slot.schema';
 import { SummaryReportDto } from './dto/summary-reports.dto';
 import { ReportDocument, Reports } from './schema/reports.schema';
 import { SLOT_STATUS } from 'src/constants/slot.constant';
-import * as dayjs from "dayjs"
+import dayjs from "dayjs"
 import { DetailsReportsDto } from './dto/details-reports.dto';
 
 @Injectable()
@@ -130,9 +130,9 @@ export class ReportsService {
      if (!type) throw new NotFoundException('Category Name Not Found');
       match = {...match, "type": type}
     }
-    
+
     if (input.from_Date && input.to_Date) {
-      dateMatch['out_time'] = {
+      dateMatch['in_time'] = {
         $gte: dayjs(input.from_Date).format("YYYY-MM-DD HH:mm:ss"),
         $lte: dayjs(input.to_Date).format("YYYY-MM-DD HH:mm:ss"),
       };
@@ -150,18 +150,12 @@ export class ReportsService {
           }
       },
       {
-        $unwind: "$slotDetails"
-      },
-      {
         $lookup: {
           from: "floors",
           localField: "slotDetails.floor",
           foreignField: "_id",
           as: "floorDetails"
         }
-      },
-      {
-        $unwind: "$floorDetails"
       },
       {
         $lookup: {
@@ -172,18 +166,12 @@ export class ReportsService {
         }
       },
       {
-        $unwind: "$place"
-      },
-      {
         $lookup: {
             from: "parckingcategories",
             localField: "type",
             foreignField: "_id",
             as: "type"
         }
-      },
-      {
-        $unwind: "$type"
       },
       {
         $match: match
@@ -223,7 +211,7 @@ export class ReportsService {
               floor: "$_id.floor",
               totalParked: "$totalParked",
               category: "$category",
-              totalAmount: "$totalAmount"
+              totalAmount: "$totalAmount",
           }
       }
       ])
@@ -274,18 +262,12 @@ export class ReportsService {
           }
         },
         {
-          $unwind: "$slot"
-        },
-        {
           $lookup: {
             from: 'floors',
             localField: 'slot.floor',
             foreignField: '_id',
             as: 'floorDetails'
           }
-        },
-        {
-          $unwind: '$floorDetails'
         },
         {
           $lookup: {
@@ -296,9 +278,6 @@ export class ReportsService {
           }
         },
         {
-          $unwind: '$type'
-        },
-        {
           $lookup: {
             from: "parckingplaces",
             localField: "place",
@@ -307,38 +286,66 @@ export class ReportsService {
           }
         },
         {
-          $unwind: '$place'
-        },
-        {
           $match: match
         },
         {
           $group: {
             _id: {
-              place: '$place.name',
-              floor: '$floorDetails.name',
-              category: '$type.type',
-              slot: '$slot.name'
+              place: "$place.name",
+              floor: "$floorDetails.name",
+              category: "$type.type",
+              slot: "$slot.name",
+              vehicle_Number: "$vehicle_Number",
+              Amount: "$payable_amount",
+              Paid: "$paid_amount",
+              in_time: "$in_time",
+              out_time: "$out_time"
             },
-            totalAmount: { $first: "$payable_amount" },
-            amount: { $first: '$amount' },
-            vehicle_Number: { $first: '$vehicle_Number' },
-            in_time: { $first: '$in_time' },
-            out_time: { $first: '$out_time' },
-          },
+            totalPaid: { $sum: "$paid_amount" },
+            totalAmount: { $sum: "$payable_amount" },
+          }
         },
         {
           $project: {
             _id: 0,
-            place: '$_id.place',
-            category: '$_id.category',
-            floor: '$_id.floor',
-            slot: '$_id.slot',
-            vehicle_Number: '$vehicle_Number',
-            amount: '$amount',
-            in_time: 1,
-            out_time: 1,
-            totalAmount: '$totalAmount'
+            place: "$_id.place",
+            category: "$_id.category",
+            floor: "$_id.floor",
+            slot: "$_id.slot",
+            vehicle_Number: {
+              $ifNull: [ "$_id.vehicle_Number", "" ]
+            },
+            Amount: {
+              $ifNull: [ "$_id.Amount", 0 ]
+            },
+            Paid: {
+              $ifNull: [ "$_id.Paid", 0 ]
+            },
+            in_time: {
+              $ifNull: [ "$_id.in_time", "" ]
+            },
+            out_time: {
+              $ifNull: [ "$_id.out_time", "" ]
+            },
+            totalPaid: 1,
+            totalAmount: 1,
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalPaid: { $sum: "$totalPaid" },
+            totalAmount: { $sum: "$totalAmount" },
+            count: { $sum: "$count" },
+            details: { $push: "$$ROOT" }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            totalPaid: 1,
+            totalAmount: 1,
+            details: 1
           }
         }
       ])
