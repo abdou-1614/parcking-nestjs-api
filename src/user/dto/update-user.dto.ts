@@ -23,6 +23,16 @@ export class UpdateUserDto {
     @IsEmail()
     email?: string
 
+    @ApiProperty({
+        example: 'password@123',
+        description: 'Enter The Password',
+        name: 'password',
+        minLength: 6
+    })
+    @IsString()
+    @IsOptional()
+    password?: string
+
     @ApiFile()
     @IsOptional()
     image?: Express.Multer.File

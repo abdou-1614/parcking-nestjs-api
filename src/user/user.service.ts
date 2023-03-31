@@ -18,7 +18,7 @@ export class UserService {
     constructor( @InjectModel(User.name) private readonly userModel: Model<UserDocument> ) {}
 
     async createUser(input: CreateUserDto) {
-        const { name, email, password, image } = input
+        const { name, email, password, image, role } = input
 
         await this.isEmailTake(email)
         try{
@@ -27,6 +27,7 @@ export class UserService {
             name,
             email,
             password,
+            role,
             image: image ? image.filename : image
         })
         return user
@@ -70,7 +71,7 @@ export class UserService {
     }
 
     async updateUserDetails(id: string, updateDto: UpdateUserDto) {
-        const { name, email, image, status, role } = updateDto
+        const { name, email, password, image, status, role } = updateDto
         const validId = mongoose.isValidObjectId(id)
         if(!validId) throw new BadRequestException('NOT VALID ID')
 
@@ -83,7 +84,8 @@ export class UserService {
         return this.userModel.findByIdAndUpdate(id, {
             name,
             email,
-            image: image.filename,
+            password,
+            image: image ? image.filename : image,
             status,
             role
         },
