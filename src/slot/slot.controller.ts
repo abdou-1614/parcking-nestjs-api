@@ -5,6 +5,7 @@ import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResp
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { UpdateSlotDto } from './dto/update-slot.dto';
 import { IsAdmin } from 'src/common/decorators/is-admin.decorator';
+import { Public } from 'src/auth/public.decorator';
 
 @IsAdmin()
 @ApiBearerAuth()
