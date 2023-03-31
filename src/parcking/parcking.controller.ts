@@ -5,6 +5,8 @@ import { CreateParckingDto } from './dto/create-parcking.dto';
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { UpdateParckingDto } from './dto/update-parking.dto';
 import { IsAdmin } from 'src/common/decorators/is-admin.decorator';
+import { Public } from 'src/auth/public.decorator';
+import { EndParkingDto } from './dto/ended-parking.dto';
 
 @IsAdmin()
 @ApiBearerAuth()
@@ -70,11 +72,16 @@ export class ParckingController {
     description: 'Parking Not Found'
   })
   @ApiOperation({ summary: 'Find All Current Parcking' })
-  @Get('current')
+  @Get('/current/current')
   async findCurrent(){
     return this.parckingService.findCurrentParking()
   }
 
+  @ApiOperation({ summary: 'Find Parking By Vehicle Number' })
+  @Get(':vehicle_number')
+  async findByVehicleNumber(@Param('vehicle_Number') vehicle_Number: string){
+    return this.parckingService.findParkingByVehicleNumber(vehicle_Number)
+  }
   @ApiOkResponse({
     description: 'Scan Qr Code Parking Successfully'
   })
@@ -82,9 +89,9 @@ export class ParckingController {
     description: 'Parking Not Found'
   })
   @ApiOperation({ summary: 'Scan Qr Code and Get All Data' })
-  @Post('/scan-qrCode/:qrCode')
-  async scanQrCode(@Param('qrCode') qrCode: string){
-    return this.parckingService.scanQrCodeAndEndParking(qrCode)
+  @Post('/scan-qrCode/:vehicle_Number')
+  async scanQrCode(@Param('vehicle_Number') vehicle_Number: string){
+    return this.parckingService.scanQrCodeAndEndParking(vehicle_Number)
   }
 
   @ApiOkResponse({
@@ -101,6 +108,21 @@ export class ParckingController {
   @ApiParam({ required: true, description: 'Enter Parking ID', name: 'ID' })
   async findById(@Param('id') id: string){
     return this.parckingService.findById(id)
+  }
+
+  @ApiOkResponse({
+    description: 'Parking Updated Successfully'
+  })
+  @ApiNotFoundResponse({
+    description: 'Parking Not Found'
+  })
+  @ApiBadRequestResponse({
+    description: 'Not Valid ID'
+  })
+  @ApiParam({ required: true, description: 'Enter Parking ID', name: 'ID' })
+  @Patch('ended/:id')
+  async payAndEndParking(@Param('id') id: string, @Body() input: EndParkingDto){
+    return this.parckingService.payAndEndParking(id, input)
   }
 
   @ApiOkResponse({
