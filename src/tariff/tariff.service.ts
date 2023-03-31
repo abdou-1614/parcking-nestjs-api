@@ -9,6 +9,7 @@ import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { FilterQueries } from 'src/utils/filterQueries.util';
 import { ui_projection_query_tariff } from './tariff.projection';
 import { UpdateTariffDto } from './dto/update-tariff.dto';
+import dayjs from 'dayjs'
 
 @Injectable()
 export class TariffService {
@@ -23,7 +24,11 @@ export class TariffService {
         if(!place) throw new NotFoundException('The Entered Place Not Found')
         const type = await this.parckingCategoryModel.findById(input.type)
         if(!type) throw new NotFoundException('The Entered Type Not Found')
-        const tariff = await this.tariffModel.create(input)
+        const tariff = await this.tariffModel.create({
+            ...input,
+            start_date: dayjs(input.start_date).format('YYYY-MM-DD HH:mm:ss'),
+            end_date: dayjs(input.end_date).format('YYYY-MM-DD HH:mm:ss')
+        })
         return tariff
     }
 
@@ -63,7 +68,11 @@ export class TariffService {
         const category = await this.parckingCategoryModel.findById(input.type)
         if(!category) throw new NotFoundException('Type Not Found')
 
-        const tariff = await this.tariffModel.findByIdAndUpdate(id, input, {
+        const tariff = await this.tariffModel.findByIdAndUpdate(id, {
+            ...input,
+            start_date: dayjs(input.start_date).format('YYYY-MM-DD HH:mm:ss'),
+            end_date: dayjs(input.end_date).format('YYYY-MM-DD HH:mm:ss')
+        }, {
             new: true,
             runValidators: true
         })
