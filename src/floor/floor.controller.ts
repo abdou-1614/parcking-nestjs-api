@@ -5,6 +5,7 @@ import { FloorService } from './floor.service';
 import { CreateFloorDto } from './dto/create-floor.dto';
 import { ApiOperation, ApiCreatedResponse, ApiNotFoundResponse, ApiConflictResponse, ApiBadRequestResponse, ApiOkResponse, ApiParam, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { IsAdmin } from 'src/common/decorators/is-admin.decorator';
+import { Public } from 'src/auth/public.decorator';
 
 @IsAdmin()
 @ApiBearerAuth()
