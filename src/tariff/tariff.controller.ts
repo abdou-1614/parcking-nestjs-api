@@ -5,6 +5,7 @@ import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiNotFoundRe
 import { FilterQueryDto } from 'src/common/dto/filterquery.dto';
 import { UpdateTariffDto } from './dto/update-tariff.dto';
 import { IsAdmin } from 'src/common/decorators/is-admin.decorator';
+import { Public } from 'src/auth/public.decorator';
 
 @IsAdmin()
 @ApiBearerAuth()
