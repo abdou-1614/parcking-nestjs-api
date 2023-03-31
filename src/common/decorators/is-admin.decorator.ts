@@ -1,6 +1,7 @@
 import { SetMetadata, UseGuards, applyDecorators } from "@nestjs/common"
 import { RoleGuard } from "../guards/role.guard"
 import { ApiBearerAuth, ApiForbiddenResponse, ApiUnauthorizedResponse } from "@nestjs/swagger"
+import { AccessJwtGuard } from "src/auth/access-jwt-auth.guard"
 
 
 export const IS_ADMIN_KEY = 'isAdmin'
