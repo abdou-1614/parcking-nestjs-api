@@ -13,9 +13,17 @@ import { ParckingModule } from './parcking/parcking.module';
 import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AccessJwtGuard } from './auth/access-jwt-auth.guard';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { RoleGuard } from './common/guards/role.guard';
+
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'tmp'),
+      serveRoot: '/tmp',
+    }),
     ConfigModule.forRoot({
       isGlobal: true
     }),
