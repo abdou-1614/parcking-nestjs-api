@@ -4,6 +4,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { SummaryReportDto } from './dto/summary-reports.dto';
 import { DetailsReportsDto } from './dto/details-reports.dto';
 import { IsAdmin } from 'src/common/decorators/is-admin.decorator';
+import { Public } from 'src/auth/public.decorator';
 
 @IsAdmin()
 @ApiBearerAuth()
