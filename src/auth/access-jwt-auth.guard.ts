@@ -15,7 +15,6 @@ export class AccessJwtGuard extends AuthGuard('access-token') {
             context.getClass(),
             context.getHandler()
         ])
-
         if(isPublic){
             return true
         }
