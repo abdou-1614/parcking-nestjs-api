@@ -13,8 +13,9 @@ import { ui_projection_query_parking } from './parking.projection';
 import { Tariff, TariffDocument } from 'src/tariff/schma/tariff.schema';
 import { UpdateParckingDto } from './dto/update-parking.dto';
 import { unlinkSync } from 'fs';
-import * as dayjs from 'dayjs'
+import dayjs from 'dayjs'
 import { SLOT_STATUS } from 'src/constants/slot.constant'
+import { EndParkingDto } from './dto/ended-parking.dto';
 
 @Injectable()
 export class ParckingService {
@@ -97,6 +98,10 @@ export class ParckingService {
                 path: 'type',
                 select: 'type'
             })
+            .populate({
+                path: 'place',
+                select: 'name'
+            })
 
             if(!parking) throw new NotFoundException('Parking Not Found !')
 
@@ -108,14 +113,17 @@ export class ParckingService {
             if(!validId) throw new BadRequestException('Not Valid ID')
 
             const parking = await this.parckingModel.findById(id).populate({
+                path: 'place',
+                select: 'name'
+            }).populate({
                 path: 'slot',
                 select: 'name',
-                populate: {path: 'floor', select: 'name'}
-            })
-            .populate({
+                populate: { path: 'floor', select: 'name' }
+            }).populate({
                 path: 'type',
                 select: 'type'
             })
+
             if(!parking) {
                 throw new NotFoundException('Parking Not Found')
             }
@@ -125,7 +133,10 @@ export class ParckingService {
 
         async findEndedParking(){
 
-            const parking = await this.parckingModel.find({out_time: { $exists: true }}).select('qrCode vehicle_Number in_time out_time payable_amount')
+            const parking = await this.parckingModel.find({out_time: { $exists: true }}).select('qrCode vehicle_Number in_time out_time payable_amount')            .populate({
+                path: 'type',
+                select: 'type'
+            })
 
             if(parking.length === 0) throw new NotFoundException('Ended Parking Not Found')
 
@@ -133,7 +144,20 @@ export class ParckingService {
         }
 
         async findCurrentParking(){
-            const parking = await this.parckingModel.find({out_time: null}).populate({
+            const parking = await this.parckingModel.find({ out_time: { $exists: false } }).select('qrCode vehicle_Number in_time')
+            .populate({
+                path: 'slot',
+                select: 'name',
+            })
+            .populate({
+                path: 'type',
+                select: 'type'
+            })
+            return parking
+        }
+
+        async findParkingByVehicleNumber(vehicle_Number: string){
+            const parking = await this.parckingModel.findOne({vehicle_Number}).populate({
                 path: 'slot',
                 select: 'name',
             })
@@ -141,7 +165,7 @@ export class ParckingService {
                 path: 'type',
                 select: 'type'
             }).select('_id qrCode vehicle_Number in_time')
-            if(parking.length === 0) throw new NotFoundException('Parking Not Found')
+            if(!parking) throw new NotFoundException('Parking Not Found')
             return parking
         }
 
@@ -161,6 +185,14 @@ export class ParckingService {
             try{
                 const foundParking = await this.parckingModel.findById(id)
                 if(!foundParking) throw new NotFoundException('Parking Not Found')
+                if (input.slot.toString() !== foundParking.slot.toString()) {
+                    // update previous slot to ACTIVE
+                    const previousSlot = await this.slotgModel.findById(foundParking.slot)
+                    if (previousSlot) {
+                        previousSlot.status = SLOT_STATUS.ACTIVE
+                        await previousSlot.save()
+                    }
+                }
                 const parking = await this.parckingModel.findByIdAndUpdate(id, input, {
                     new: true,
                     runValidators: true
@@ -214,15 +246,30 @@ export class ParckingService {
             return 'Parking Deleted Successfully'
         }
 
-        async scanQrCodeAndEndParking(qrCode: string){
-            const parking = await this.parckingModel.findOne({qrCode})
-            if(!parking) throw new NotFoundException('Parking Not Found')
-
+        async payAndEndParking(id: string, input: EndParkingDto){
+            const validId = mongoose.isValidObjectId(id)
+            if(!validId) throw new BadRequestException('Not Valid ID')
+            const parking = await this.parckingModel.findByIdAndUpdate(id, input, {
+                new: true,
+                runValidators: true
+            })
+            await this.slotgModel.findOneAndUpdate({ _id: parking.slot }, { $set: { status: SLOT_STATUS.ACTIVE } }, { new: true } )
             parking.out_time = dayjs().format('YYYY-MM-DD HH:mm:ss')
             parking.duration = await parking.calculateDuration(parking.out_time)
             parking.payable_amount = await parking.calculateAmount(parking.out_time)
+            parking.slot.name = null
+            await parking.save() 
+            return parking
+        }
 
+        async scanQrCodeAndEndParking(vehicle_Number: string){
+            const parking = await this.parckingModel.findOne({vehicle_Number})
+            if(!parking) throw new NotFoundException('Parking Not Found')
             await this.slotgModel.findOneAndUpdate({ _id: parking.slot }, { $set: { status: SLOT_STATUS.ACTIVE } }, { new: true } ) 
+            parking.out_time = dayjs().format('YYYY-MM-DD HH:mm:ss')
+            parking.duration = await parking.calculateDuration(parking.out_time)
+            parking.payable_amount = await parking.calculateAmount(parking.out_time)
+            parking.slot = null
 
             await parking.save()
 
@@ -234,8 +281,15 @@ export class ParckingService {
                {
                 $group: {
                     _id: null,
-                    'Total Amount': { $sum: '$payable_amount' },
-                    'Total Parking': { $sum: 1 },
+                    TotalAmount: { $sum: '$payable_amount' },
+                    TotalParking: { $sum: 1 },
+                }
+               },
+               {
+                $project: {
+                    _id: 0,
+                    TotalAmount: 1,
+                    TotalParking: 1
                 }
                }
               ]);
@@ -248,7 +302,13 @@ export class ParckingService {
                 {
                     $group: {
                         _id: null,
-                        'Total Ended Parking': { $sum: 1 }
+                        TotalEndedParking: { $sum: 1 }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        TotalEndedParking: 1
                     }
                 }
               ])
@@ -261,24 +321,30 @@ export class ParckingService {
                 {
                     $group: {
                         _id: null,
-                        'Total Current Parking': { $sum: 1 },
+                        TotalCurrentParking: { $sum: 1 },
                     }
                 },
+                {
+                    $project: {
+                        _id: 0,
+                        TotalCurrentParking: 1
+                    }
+                }
               ])
 
               const totalSlot = await this.slotgModel.aggregate([
                 {
                     $group: {
                         _id: null,
-                        'Total Slots': { $sum: 1 },
-                        'Total Available Status': {
+                        TotalSlots: { $sum: 1 },
+                        TotalAvailableStatus: {
                             $sum: {
                                 $cond: [
                                     { $eq: ['$status', SLOT_STATUS.ACTIVE] }, 1, 0
                                 ]
                             }
                         },
-                        'Total Booked Slot': {
+                        TotalBookedSlot: {
                             $sum: {
                                 $cond: [
                                     { $eq: [ '$status', SLOT_STATUS.INACTIVE ] }, 1, 0
@@ -286,29 +352,44 @@ export class ParckingService {
                             }
                         }
                     }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        TotalSlots: 1,
+                        TotalAvailableStatus: 1,
+                        TotalBookedSlot: 1
+                    }
                 }
               ])
 
-              const today = dayjs().startOf('day')
+              const today = dayjs().startOf('day').format('YYYY-MM-DD HH:mm:ss')
+              const endOfToday = dayjs().endOf('day').format('YYYY-MM-DD HH:mm:ss')              
               const thisMonth = dayjs().startOf('month')
               const thisYear = dayjs().startOf('year')
-
               const dailyAmount = await this.parckingModel.aggregate([
                 {
                     $match: {
                         in_time: {
-                            $gte: today.format('YYYY-MM-DD HH:mm:ss'),
-                            $lt: dayjs().endOf('day').format('YYYY-MM-DD HH:mm:ss')
+                            $gte: today,
+                            $lte: endOfToday
                         }
                     }
                 },
                 {
                     $group: {
                         _id: null,
-                        'Total Daily Amount': { $sum: '$payable_amount' }
+                        TotalDailyAmount: { $sum: '$payable_amount' }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        TotalDailyAmount: 1
                     }
                 }
               ])
+              console.log('DAILY AMOUNT', dailyAmount)
 
               const monthlyAmount = await this.parckingModel.aggregate([
                 {
@@ -322,7 +403,13 @@ export class ParckingService {
                 {
                     $group: {
                         _id: null,
-                        'Total Monthly Amount': { $sum: '$payable_amount' }
+                        TotalMonthlyAmount: { $sum: '$payable_amount' }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        TotalMonthlyAmount: 1
                     }
                 }
               ])
@@ -338,11 +425,16 @@ export class ParckingService {
                 {
                     $group: {
                         _id: null,
-                        'Total Yearly Amount': { $sum: '$payable_amount' }
+                        TotalYearlyAmount: { $sum: '$payable_amount' }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        TotalYearlyAmount: 1
                     }
                 }
               ])
-              console.log({monthlyAmount, dailyAmount, yearlyAmount})
               
               return [...amountStats, ...endedParkingStats, ...currentParkingStats, ...totalSlot, ...dailyAmount, ...monthlyAmount, ...yearlyAmount]
         }
