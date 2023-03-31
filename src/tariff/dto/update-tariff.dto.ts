@@ -68,7 +68,7 @@ export class UpdateTariffDto {
         example: '63b33e04e948de2d244f2230'
     })
     @IsOptional()
-    place: ParckingPlace
+    place?: ParckingPlace
 
 
     @ApiProperty({
@@ -78,7 +78,7 @@ export class UpdateTariffDto {
         example: '63b9edc47e1e7acdd6f45fa9'
     })
     @IsOptional()
-    type: ParckingCategory
+    type?: ParckingCategory
 
 
     @ApiProperty({
@@ -90,5 +90,5 @@ export class UpdateTariffDto {
     })
     @IsOptional()
     @IsEnum(TARIFF_STATUS, { message: 'Enter Correct Status' })
-    status: TARIFF_STATUS
+    status?: TARIFF_STATUS
 }
