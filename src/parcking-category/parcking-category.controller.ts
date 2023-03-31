@@ -5,6 +5,7 @@ import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedRe
 import { CreateParckingCategoryDto } from './dto/create-parcking-category.dto';
 import { UpdateParckingCategoryDto } from './dto/update-parcking-category.dto';
 import { IsAdmin } from 'src/common/decorators/is-admin.decorator';
+import { Public } from 'src/auth/public.decorator';
 
 @IsAdmin()
 @ApiBearerAuth()
