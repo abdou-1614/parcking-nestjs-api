@@ -96,7 +96,7 @@ export class Parcking {
     @Prop({
         required: false,
         type: Number,
-        default: 0
+        default: 0,
     })
     payable_amount: number
 
