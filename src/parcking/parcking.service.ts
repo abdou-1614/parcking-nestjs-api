@@ -372,7 +372,7 @@ export class ParckingService {
                     $match: {
                         in_time: {
                             $gte: today,
-                            $lte: endOfToday
+                            $lt: endOfToday
                         }
                     }
                 },
@@ -389,30 +389,54 @@ export class ParckingService {
                     }
                 }
               ])
-              console.log('DAILY AMOUNT', dailyAmount)
-
-              const monthlyAmount = await this.parckingModel.aggregate([
-                {
-                    $match: {
+                const monthlyAmounts = [];
+                const now = dayjs();
+                for (let month = 0; month < 12; month++) {
+                  const startOfMonth = now.startOf('year').add(month, 'month').startOf('month').format('YYYY-MM-DD HH:mm:ss');
+                  const endOfMonth = now.startOf('year').add(month, 'month').endOf('month').format('YYYY-MM-DD HH:mm:ss');
+                  const result = await this.parckingModel.aggregate([
+                    {
+                      $match: {
                         in_time: {
+                          $gte: startOfMonth,
+                          $lt: endOfMonth,
+                        },
+                      },
+                    },
+                    {
+                      $group: {
+                        _id: null,
+                        total: { $sum: '$payable_amount' },
+                      },
+                    },
+                  ]);
+                  monthlyAmounts.push({
+                    month: now.startOf('year').add(month, 'month').format('MMM'),
+                    amount: result.length ? result[0].total : 0,
+                  });
+                }
+                const totalMonthlyAmount = await this.parckingModel.aggregate([
+                    {
+                        $match: {
+                          in_time: {
                             $gte: thisMonth.format('YYYY-MM-DD HH:mm:ss'),
                             $lt: dayjs().endOf('month').format('YYYY-MM-DD HH:mm:ss')
+                          }
                         }
-                    }  
-                },
-                {
-                    $group: {
-                        _id: null,
-                        TotalMonthlyAmount: { $sum: '$payable_amount' }
-                    }
-                },
-                {
-                    $project: {
-                        _id: 0,
-                        TotalMonthlyAmount: 1
-                    }
-                }
-              ])
+                      },
+                      {
+                        $group: {
+                          _id: null,
+                          TotalMonthlyAmount: { $sum: '$payable_amount' }
+                        }
+                      },
+                      {
+                        $project: {
+                          _id: 0,
+                          TotalMonthlyAmount: 1
+                        }
+                      }              
+                  ]).exec()
               const yearlyAmount = await this.parckingModel.aggregate([
                 {
                     $match: {
@@ -435,8 +459,19 @@ export class ParckingService {
                     }
                 }
               ])
+
+              const [amountStatsPromise, totalMonthlyAmountPromise, dailyAmountPromise, monthlyAmountPromise, yearlyAmountPromise, endedParkingStatsPromise, currentParkingStatsPromise, totalSlotPromise,] = await Promise.all([
+                amountStats,
+                endedParkingStats,
+                currentParkingStats,
+                totalSlot,
+                dailyAmount,
+                monthlyAmounts,
+                yearlyAmount,
+                totalMonthlyAmount
+              ]);
               
-              return [...amountStats, ...endedParkingStats, ...currentParkingStats, ...totalSlot, ...dailyAmount, ...monthlyAmount, ...yearlyAmount]
+              return [...amountStatsPromise, ...dailyAmountPromise, ...totalMonthlyAmountPromise, ...monthlyAmountPromise, ...yearlyAmountPromise, ...endedParkingStatsPromise, ...currentParkingStatsPromise, ...totalSlotPromise]
         }
 
         private getPath(qrCode: string){
