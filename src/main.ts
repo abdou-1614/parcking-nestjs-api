@@ -14,6 +14,7 @@ async function bootstrap() {
       'http://localhost:3000',
       "https://parking-nestjs-api.onrender.com",
       "https://parking-react-demo.onrender.com"
+      
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,

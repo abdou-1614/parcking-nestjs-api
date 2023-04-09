@@ -363,7 +363,7 @@ export class ParckingService {
                 }
               ])
 
-              const today = dayjs().startOf('day').format('YYYY-MM-DD HH:mm:ss')
+              const today = dayjs().startOf('day')
               const endOfToday = dayjs().endOf('day').format('YYYY-MM-DD HH:mm:ss')              
               const thisMonth = dayjs().startOf('month')
               const thisYear = dayjs().startOf('year')
@@ -371,21 +371,21 @@ export class ParckingService {
                 {
                     $match: {
                         in_time: {
-                            $gte: today,
-                            $lt: endOfToday
+                            $gte: today.format('YYYY-MM-DD HH:mm:ss'),
+                            $lt: dayjs().endOf('day').format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
                 },
                 {
                     $group: {
                         _id: null,
-                        TotalDailyAmount: { $sum: '$payable_amount' }
+                        TotalDailyAmount: { $sum: '$payable_amount' },
                     }
                 },
                 {
                     $project: {
                         _id: 0,
-                        TotalDailyAmount: 1
+                        TotalDailyAmount: 1,
                     }
                 }
               ])
