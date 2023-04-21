@@ -371,7 +371,7 @@ export class ParckingService {
                 {
                     $match: {
                         in_time: {
-                            $gte: today.format('YYYY-MM-DD HH:mm:ss'),
+                            $gte: dayjs().startOf('day').format('YYYY-MM-DD HH:mm:ss'),
                             $lt: dayjs().endOf('day').format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
@@ -388,7 +388,7 @@ export class ParckingService {
                         TotalDailyAmount: 1,
                     }
                 }
-              ])
+              ]).exec()
                 const monthlyAmounts = [];
                 const now = dayjs();
                 for (let month = 0; month < 12; month++) {
